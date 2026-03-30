@@ -1,34 +1,59 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #0f172a;
+  background: #111827;
   color: white;
   transition: 0.3s;
 }
 
-/* Header */
+/* HEADER */
 .header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 20px;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #6366f1, #22c55e);
 }
 
-#themeToggle {
-  background: #1e293b;
+/* Title center */
+.title {
+  text-align: center;
+  margin: 0;
+}
+
+/* Search bar */
+.search {
+  justify-self: start;
+  padding: 8px 12px;
+  border-radius: 20px;
   border: none;
-  padding: 10px 15px;
+  outline: none;
+}
+
+/* Theme button */
+#themeToggle {
+  justify-self: end;
+  background: rgba(0,0,0,0.2);
+  border: none;
+  padding: 10px;
   border-radius: 50%;
-  color: white;
   cursor: pointer;
+  color: white;
   transition: 0.3s;
 }
 
 #themeToggle:hover {
-  transform: rotate(180deg) scale(1.1);
+  transform: rotate(180deg);
 }
 
-/* Container */
+/* Divider */
+.divider {
+  border: none;
+  height: 1px;
+  background: #374151;
+}
+
+/* CONTAINER */
 .container {
   padding: 20px;
   display: flex;
@@ -36,61 +61,75 @@ body {
   gap: 20px;
 }
 
-/* Card */
+/* CARD */
 .card {
-  display: block;
-  background: #1e293b;
+  display: flex;
+  gap: 15px;
+  background: #1f2937;
   border-radius: 15px;
-  overflow: hidden;
+  padding: 10px;
   text-decoration: none;
   color: white;
   transition: 0.3s;
 }
 
 .card:hover {
-  transform: scale(1.03);
-  background: #334155;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
-/* Image */
-.card img {
+/* IMAGE BOX */
+.image-box {
+  width: 120px;
+  height: 120px;
+  background: #374151;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image-box img {
   width: 100%;
-  height: 200px;
+  height: 100%;
   object-fit: cover;
 }
 
-/* Info */
+/* INFO BOX */
 .info {
-  padding: 15px;
+  flex: 1;
 }
 
 .partner {
-  font-size: 14px;
-  color: #94a3b8;
+  font-size: 13px;
+  color: #9ca3af;
 }
 
 .price {
   font-size: 20px;
   font-weight: bold;
-  margin: 5px 0;
 }
 
 .desc {
   font-size: 14px;
-  color: #cbd5f5;
+  color: #d1d5db;
 }
 
-/* Light Mode */
+/* LIGHT MODE */
 .light {
-  background: #f1f5f9;
+  background: #f3f4f6;
   color: black;
+}
+
+.light .header {
+  background: #e5e7eb;
 }
 
 .light .card {
-  background: white;
+  background: #ffffff;
   color: black;
 }
 
-.light .card:hover {
-  background: #e2e8f0;
+.light .divider {
+  background: #d1d5db;
 }
