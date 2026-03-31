@@ -1,3 +1,4 @@
+/* GLOBAL */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -15,22 +16,21 @@ body {
   background: linear-gradient(135deg, #6366f1, #22c55e);
 }
 
-/* Title center */
 .title {
   text-align: center;
   margin: 0;
 }
 
-/* Search bar */
+/* SEARCH */
 .search {
   justify-self: start;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: 20px;
   border: none;
   outline: none;
 }
 
-/* Theme button */
+/* THEME BUTTON */
 #themeToggle {
   justify-self: end;
   background: rgba(0,0,0,0.2);
@@ -46,46 +46,35 @@ body {
   transform: rotate(180deg);
 }
 
-/* Divider */
+/* DIVIDER */
 .divider {
   border: none;
   height: 1px;
   background: #374151;
 }
 
-/* CONTAINER */
+/* CONTAINER → 3 PER ROW */
 .container {
   padding: 20px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
 /* CARD */
 .card {
   display: flex;
-  gap: 15px;
-  background: #1f2937;
-  border-radius: 15px;
-  padding: 10px;
+  flex-direction: column;
   text-decoration: none;
   color: white;
-  transition: 0.3s;
 }
 
-.card:hover {
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-}
-
-/* IMAGE BOX */
+/* IMAGE TOP */
 .image-box {
-  width: 120px;
-  height: 120px;
+  width: 100%;
+  aspect-ratio: 1/1;
   background: #374151;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 20px;
   overflow: hidden;
 }
 
@@ -97,22 +86,35 @@ body {
 
 /* INFO BOX */
 .info {
-  flex: 1;
+  background: #1f2937;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 15px;
+  transition: 0.3s;
 }
 
+/* TEXT */
 .partner {
   font-size: 13px;
   color: #9ca3af;
+  margin: 0;
 }
 
 .price {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
+  margin: 5px 0;
 }
 
 .desc {
   font-size: 14px;
   color: #d1d5db;
+  margin: 0;
+}
+
+/* HOVER → ONLY SHADOW */
+.card:hover .info {
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }
 
 /* LIGHT MODE */
@@ -125,11 +127,23 @@ body {
   background: #e5e7eb;
 }
 
-.light .card {
+.light .info {
   background: #ffffff;
   color: black;
 }
 
 .light .divider {
   background: #d1d5db;
+}
+
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
 }
