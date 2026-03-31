@@ -57,28 +57,31 @@ body {
 .container {
   padding: 30px;
   display: grid;
-  grid-template-columns: repeat(3, 220px);
-  justify-content: center;
+  grid-template-columns: repeat(3, 1fr);
   gap: 40px;
+  justify-items: center;
 }
 
 /* CARD */
-..card {
-  width: 220px;
+.card {
+  width: 200px;
+  text-decoration: none;
+  color: white;
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-decoration: none;
-  color: white;
 }
 
 /* IMAGE BOX (TOP) */
-image-box {
-  width: 160px;
-  height: 160px;
+.image-box {
+  width: 150px;
+  height: 150px;
+  background: #d1d5db;
   border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  background: #ccc;
   z-index: 2;
 }
 
@@ -90,10 +93,10 @@ image-box {
 
 /* TEXT BOX (BOTTOM RED STYLE) */
 .info {
+  margin-top: -30px; /* overlap effect */
+  background: #ff3b3b;
   width: 100%;
-  margin-top: -25px;
-  background: #0f172a;
-  padding: 35px 10px 15px;
+  padding: 40px 10px 15px;
   border-radius: 20px;
   text-align: center;
   transition: 0.3s;
