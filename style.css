@@ -64,14 +64,21 @@ body {
 /* CARD */
 .card {
   display: flex;
-  gap: 15px;
-  background: #1f2937;
-  border-radius: 15px;
-  padding: 10px;
+  align-items: center;
+  gap: 20px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 15px;
+  border-radius: 20px;
   text-decoration: none;
   color: white;
+  backdrop-filter: blur(10px);
   transition: 0.3s;
 }
+
+.card:hover {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
 
 .card:hover {
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
@@ -79,14 +86,12 @@ body {
 
 /* IMAGE BOX */
 .image-box {
-  width: 120px;
-  height: 120px;
-  background: #374151;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 90px;
+  height: 90px;
+  background: #1f2937;
+  border-radius: 20px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .image-box img {
@@ -97,7 +102,9 @@ body {
 
 /* INFO BOX */
 .info {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .name {
