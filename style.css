@@ -65,7 +65,7 @@ body {
 .card {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 40px;
   background: rgba(15, 23, 42, 0.6);
   padding: 15px;
   border-radius: 20px;
@@ -86,8 +86,8 @@ body {
 
 /* IMAGE BOX */
 .image-box {
-  width: 90px;
-  height: 90px;
+  width: 190px;
+  height: 190px;
   background: #1f2937;
   border-radius: 20px;
   overflow: hidden;
