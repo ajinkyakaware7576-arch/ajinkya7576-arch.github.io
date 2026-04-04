@@ -2,64 +2,83 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Best Finds</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+  <div id="root">
 
-  <!-- Header -->
-  <div class="header">
+    <div class="header">
+      <div class="search-wrap">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" placeholder="Search finds...">
+      </div>
+      <div class="title-wrap">
+        <div class="site-title">The Best<span> Finds</span></div>
+        <div class="site-sub">Curated picks for you</div>
+      </div>
+      <button class="theme-btn" id="themeToggle">🌙</button>
+    </div>
 
-    <input type="text" placeholder="Search..." class="search">
+    <div class="section-top">
+      <div class="section-eyebrow">trending now</div>
+      <div class="section-title">Top Picks This Week</div>
+    </div>
 
-    <h1 class="title">The Best Finds</h1>
+    <div class="grid">
 
-    <button id="themeToggle">🌙</button>
+      <a href="YOUR_LINK" class="card">
+        <div class="image-box">
+          <img src="IMAGE_URL" alt="Noise Max-2">
+        </div>
+        <div class="info-box">
+          <div class="product-name">Noise Max-2</div>
+          <span class="partner-tag">Amazon</span>
+          <div class="price">₹1,999</div>
+          <div class="desc">Premium ANC headphones with 40hr battery life.</div>
+        </div>
+      </a>
 
+      <a href="YOUR_LINK" class="card">
+        <div class="image-box">
+          <img src="IMAGE_URL" alt="Boat Rockers">
+        </div>
+        <div class="info-box">
+          <div class="product-name">Boat Rockers</div>
+          <span class="partner-tag">Amazon</span>
+          <div class="price">₹1,299</div>
+          <div class="desc">True wireless earbuds, punchy bass, IPX5 rated.</div>
+        </div>
+      </a>
+
+      <a href="YOUR_LINK" class="card">
+        <div class="image-box">
+          <img src="IMAGE_URL" alt="Sample Pick">
+        </div>
+        <div class="info-box">
+          <div class="product-name">Sample Pick</div>
+          <span class="partner-tag">Flipkart</span>
+          <div class="price">₹799</div>
+          <div class="desc">Great value, best seller in its category.</div>
+        </div>
+      </a>
+
+      <a href="YOUR_LINK" class="card">
+        <div class="image-box">
+          <img src="IMAGE_URL" alt="Another Find">
+        </div>
+        <div class="info-box">
+          <div class="product-name">Another Find</div>
+          <span class="partner-tag">Amazon</span>
+          <div class="price">₹2,499</div>
+          <div class="desc">Worth every rupee — great reviews all around.</div>
+        </div>
+      </a>
+
+    </div>
   </div>
-
-  <hr class="divider">
-
-  <!-- Products -->
-  <div class="container">
-
-    <div class="container">
-
-  <a href="YOUR_LINK" class="card">
-    <div class="image-box">
-      <img src="IMAGE_URL">
-    </div>
-
-    <div class="info">
-      <p class="name">Noise Max-2</p>
-      <p class="partner">Amazon</p>
-      <p class="price">₹XXX</p>
-      <p class="desc">2–3 lines about product here.</p>
-    </div>
-  </a>
-
-</div>
-    
- <div class="container">
-
-  <a href="YOUR_LINK" class="card">
-    <div class="image-box">
-      <img src="IMAGE_URL">
-    </div>
-
-    <div class="info">
-      <p class="name">Boat rockers</p>
-      <p class="partner">Amazon</p>
-      <p class="price">₹XXX</p>
-      <p class="desc">2–3 lines about product here.</p>
-    </div>
-  </a>
-
-</div>
-    
-  </div>
-
   <script src="script.js"></script>
 </body>
 </html>
