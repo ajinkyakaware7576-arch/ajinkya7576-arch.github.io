@@ -1,32 +1,18 @@
+// DARK MODE
 const toggle = document.getElementById("themeToggle");
 const root = document.getElementById("root");
 
 toggle.addEventListener("click", () => {
   root.classList.toggle("dark");
+});
 
-  if (root.classList.contains("dark")) {
-    toggle.innerText = "☀️";
-  } else {
-    toggle.innerText = "🌙";
-  }
-  const searchInput = document.querySelector(".search-wrap input");
+// SEARCH
+const input = document.querySelector(".search-wrap input");
 const cards = document.querySelectorAll(".card");
+const noResults = document.getElementById("noResults");
 
-searchInput.addEventListener("input", () => {
-  const value = searchInput.value.toLowerCase();
-
-  cards.forEach(card => {
-    const text = card.innerText.toLowerCase();
-
-    if (text.includes(value)) {
-      card.style.display = "flex";
-    } else {
-      card.style.display = "none";
-    }
-    const noResults = document.getElementById("noResults");
-
-searchInput.addEventListener("input", () => {
-  const value = searchInput.value.toLowerCase();
+input.addEventListener("input", () => {
+  const value = input.value.toLowerCase();
   let visible = 0;
 
   cards.forEach(card => {
@@ -42,5 +28,3 @@ searchInput.addEventListener("input", () => {
 
   noResults.style.display = visible === 0 ? "block" : "none";
 });
-
-
