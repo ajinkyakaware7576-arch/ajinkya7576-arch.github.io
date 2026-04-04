@@ -1,9 +1,10 @@
 const toggle = document.getElementById("themeToggle");
+const root = document.getElementById("root");
 
 toggle.addEventListener("click", () => {
-  document.body.classList.toggle("light");
+  root.classList.toggle("dark");
 
-  if (document.body.classList.contains("light")) {
+  if (root.classList.contains("dark")) {
     toggle.innerText = "☀️";
   } else {
     toggle.innerText = "🌙";
