@@ -1,47 +1,42 @@
-/* ===== ROOT COLORS ===== */
 :root {
   --bg: #f5f7fb;
   --card-bg: #ffffff;
-  --text: #1a1a1a;
+  --text: #111;
   --muted: #666;
   --accent: #3b82f6;
 }
 
-/* ===== DARK MODE ===== */
 #root.dark {
-  --bg: #1e1f22;          /* grey dark bg 🔥 */
+  --bg: #1e1f22;
   --card-bg: #2a2d31;
   --text: #f1f1f1;
-  --muted: #a1a1aa;
+  --muted: #aaa;
   --accent: #60a5fa;
 }
 
-/* ===== GLOBAL ===== */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
 }
 
 #root {
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  transition: 0.3s;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 15px 30px;
   background: var(--card-bg);
+  align-items: center;
 }
 
-/* ===== SEARCH BAR ===== */
+/* SEARCH */
 .search-wrap {
   display: flex;
-  align-items: center;
   background: var(--bg);
   padding: 8px 12px;
   border-radius: 20px;
@@ -55,14 +50,9 @@ body {
   margin-left: 8px;
 }
 
-/* ===== TITLE ===== */
+/* TITLE */
 .title-wrap {
   text-align: center;
-}
-
-.site-title {
-  font-size: 22px;
-  font-weight: bold;
 }
 
 .site-title span {
@@ -74,85 +64,54 @@ body {
   color: var(--muted);
 }
 
-/* ===== BUTTON ===== */
+/* BUTTON */
 .theme-btn {
   border: none;
   background: var(--bg);
-  padding: 8px 12px;
+  padding: 8px;
   border-radius: 50%;
   cursor: pointer;
 }
 
-/* ===== SECTION ===== */
+/* SECTION */
 .section-top {
   text-align: center;
   margin: 30px 0;
 }
 
-.section-eyebrow {
-  color: var(--accent);
-  font-size: 12px;
-  letter-spacing: 2px;
-}
-
-.section-title {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-/* ===== GRID (3 PER ROW) ===== */
+/* GRID */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 🔥 3 per row */
+  grid-template-columns: repeat(3, 1fr);
   gap: 40px;
   padding: 20px 40px;
 }
 
-/* ===== CARD ===== */
+/* CARD */
 .card {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* IMAGE */
 .card img {
   width: 120px;
   height: 120px;
-  object-fit: cover;
   border-radius: 15px;
   margin-bottom: -40px;
-  z-index: 2;
-  background: #000;
 }
 
-/* INFO BOX */
 .card-info {
   background: var(--card-bg);
   padding: 50px 15px 20px;
   border-radius: 15px;
   text-align: center;
   width: 100%;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-
-/* TEXT */
-.card-info h3 {
-  margin: 10px 0;
-}
-
-.tag {
-  font-size: 10px;
-  background: var(--bg);
-  padding: 3px 8px;
-  border-radius: 10px;
-  display: inline-block;
-  margin-bottom: 5px;
 }
 
 .price {
-  font-weight: bold;
   color: var(--accent);
+  font-weight: bold;
 }
 
 .desc {
@@ -160,22 +119,15 @@ body {
   color: var(--muted);
 }
 
-/* ===== NO RESULTS ===== */
 #noResults {
+  display: none;
   text-align: center;
   margin-top: 20px;
-  color: var(--muted);
 }
 
-/* ===== RESPONSIVE ===== */
+/* RESPONSIVE */
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .grid {
-    grid-template-columns: 1fr;
   }
 }
