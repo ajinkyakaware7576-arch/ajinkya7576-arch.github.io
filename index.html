@@ -84,8 +84,30 @@ html,body{background:var(--bg);transition:background .3s}
 .fav-btn:hover{transform:scale(1.15)}
 .fav-btn.active{background:var(--fav-active);border-color:var(--fav-active)}
 
-.image-box{width:155px;height:155px;border-radius:22px;background:var(--img-bg);border:1.5px solid var(--img-border);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;flex-shrink:0;transition:background .3s}
-.img-ph{font-size:12px;color:var(--t3);letter-spacing:1px}
+/* Update your existing class */
+.image-box {
+  width: 155px;
+  height: 155px;
+  border-radius: 22px;
+  background: var(--img-bg);
+  border: 1.5px solid var(--img-border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  transition: background .3s;
+}
+
+/* Add this specifically for the image inside the box */
+.image-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* This ensures the whole image fits without cropping */
+  padding: 10px;       /* Optional: adds a little breathing room so it doesn't touch the edges */
+}
 .info-box{margin-top:-22px;width:calc(100% + 10px);background:var(--info-bg);border:1px solid var(--info-border);border-radius:16px;padding:30px 14px 16px;text-align:center;position:relative;z-index:1;box-shadow:var(--shadow);transition:box-shadow .25s,background .3s;overflow:hidden}
 .card:hover .info-box{box-shadow:0 10px 32px rgba(0,0,0,0.14)}
 .product-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
