@@ -282,3 +282,17 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+#root.dark {
+  background: var(--bg);
+}
+
+#root.dark body {
+  background: var(--bg);
+}
+
+#root {
+  min-height: 100vh;
+  background: var(--bg);
+  transition: background 0.3s;
+}
