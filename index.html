@@ -1,85 +1,181 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Best Finds</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div id="root">
+/* ===== ROOT COLORS ===== */
+:root {
+  --bg: #f5f7fb;
+  --card-bg: #ffffff;
+  --text: #1a1a1a;
+  --muted: #666;
+  --accent: #3b82f6;
+}
 
-    <div class="header">
-      <div class="search-wrap">
-        <span class="search-icon">&#128269;</span>
-        <input type="text" placeholder="Search finds...">
-      </div>
-      <div class="title-wrap">
-        <div class="site-title">The Best<span> Finds</span></div>
-        <div class="site-sub">Curated picks for you</div>
-      </div>
-      <button class="theme-btn" id="themeToggle">🌙</button>
-    </div>
+/* ===== DARK MODE ===== */
+#root.dark {
+  --bg: #1e1f22;          /* grey dark bg 🔥 */
+  --card-bg: #2a2d31;
+  --text: #f1f1f1;
+  --muted: #a1a1aa;
+  --accent: #60a5fa;
+}
 
-    <div class="section-top">
-      <div class="section-eyebrow">trending now</div>
-      <div class="section-title">Top Picks This Week</div>
-    </div>
+/* ===== GLOBAL ===== */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
 
-    <div class="grid">
-   
+#root {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  transition: 0.3s;
+}
 
-      <a href="YOUR_LINK" class="card">
-        <div class="image-box">
-          <img src="IMAGE_URL" alt="Noise Max-2">
-        </div>
-        <div class="info-box">
-          <div class="product-name">Noise Max-2</div>
-          <span class="partner-tag">Amazon</span>
-          <div class="price">₹1,999</div>
-          <div class="desc">Premium ANC headphones with 40hr battery life.</div>
-        </div>
-      </a>
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background: var(--card-bg);
+}
 
-      <a href="YOUR_LINK" class="card">
-        <div class="image-box">
-          <img src="IMAGE_URL" alt="Boat Rockers">
-        </div>
-        <div class="info-box">
-          <div class="product-name">Boat Rockers</div>
-          <span class="partner-tag">Amazon</span>
-          <div class="price">₹1,299</div>
-          <div class="desc">True wireless earbuds, punchy bass, IPX5 rated.</div>
-        </div>
-      </a>
+/* ===== SEARCH BAR ===== */
+.search-wrap {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  padding: 8px 12px;
+  border-radius: 20px;
+}
 
-      <a href="YOUR_LINK" class="card">
-        <div class="image-box">
-          <img src="IMAGE_URL" alt="Sample Pick">
-        </div>
-        <div class="info-box">
-          <div class="product-name">Sample Pick</div>
-          <span class="partner-tag">Flipkart</span>
-          <div class="price">₹799</div>
-          <div class="desc">Great value, best seller in its category.</div>
-        </div>
-      </a>
+.search-wrap input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  margin-left: 8px;
+}
 
-      <a href="YOUR_LINK" class="card">
-        <div class="image-box">
-          <img src="IMAGE_URL" alt="Another Find">
-        </div>
-        <div class="info-box">
-          <div class="product-name">Another Find</div>
-          <span class="partner-tag">Amazon</span>
-          <div class="price">₹2,499</div>
-          <div class="desc">Worth every rupee — great reviews all around.</div>
-        </div>
-      </a>
+/* ===== TITLE ===== */
+.title-wrap {
+  text-align: center;
+}
 
-    </div>
-  </div>
-  <script src="script.js"></script>
-</body>
-</html>
+.site-title {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.site-title span {
+  color: var(--accent);
+}
+
+.site-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ===== BUTTON ===== */
+.theme-btn {
+  border: none;
+  background: var(--bg);
+  padding: 8px 12px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* ===== SECTION ===== */
+.section-top {
+  text-align: center;
+  margin: 30px 0;
+}
+
+.section-eyebrow {
+  color: var(--accent);
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* ===== GRID (3 PER ROW) ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 🔥 3 per row */
+  gap: 40px;
+  padding: 20px 40px;
+}
+
+/* ===== CARD ===== */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* IMAGE */
+.card img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 15px;
+  margin-bottom: -40px;
+  z-index: 2;
+  background: #000;
+}
+
+/* INFO BOX */
+.card-info {
+  background: var(--card-bg);
+  padding: 50px 15px 20px;
+  border-radius: 15px;
+  text-align: center;
+  width: 100%;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* TEXT */
+.card-info h3 {
+  margin: 10px 0;
+}
+
+.tag {
+  font-size: 10px;
+  background: var(--bg);
+  padding: 3px 8px;
+  border-radius: 10px;
+  display: inline-block;
+  margin-bottom: 5px;
+}
+
+.price {
+  font-weight: bold;
+  color: var(--accent);
+}
+
+.desc {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ===== NO RESULTS ===== */
+#noResults {
+  text-align: center;
+  margin-top: 20px;
+  color: var(--muted);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
