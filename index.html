@@ -1,181 +1,249 @@
-/* ===== ROOT COLORS ===== */
-:root {
-  --bg: #f5f7fb;
-  --card-bg: #ffffff;
-  --text: #1a1a1a;
-  --muted: #666;
-  --accent: #3b82f6;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Best Finds</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="root">
 
-/* ===== DARK MODE ===== */
-#root.dark {
-  --bg: #1e1f22;          /* grey dark bg 🔥 */
-  --card-bg: #2a2d31;
-  --text: #f1f1f1;
-  --muted: #a1a1aa;
-  --accent: #60a5fa;
-}
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-logo">The Best<span>Finds</span></div>
+    <div class="nav-center">
+      <div class="search-wrap">
+        <svg class="s-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M14 14l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search by name, category, store…">
+      </div>
+    </div>
+    <div class="nav-right">
+      <button class="theme-btn" id="themeToggle">🌙</button>
+      <button class="fav-nav-btn" id="favNavBtn">
+        <span class="fav-heart-icon">♥</span>
+        Favourites
+        <span class="fav-count" id="favCount">0</span>
+      </button>
+    </div>
+  </nav>
 
-/* ===== GLOBAL ===== */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-}
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-title">Your shortcut to<br><em>the internet's best</em></div>
+  </div>
 
-#root {
-  min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-  transition: 0.3s;
-}
+  <!-- FILTERS -->
+  <div class="filters-bar">
+    <span class="filter-label">Filter</span>
+    <button class="f-btn active" data-filter="all">All</button>
+    <button class="f-btn" data-filter="audio">Audio</button>
+    <button class="f-btn" data-filter="accessories">Accessories</button>
+    <button class="f-btn" data-filter="health">Health</button>
+    <button class="f-btn" data-filter="home">Home</button>
+    <button class="f-btn" data-filter="amazon">Amazon</button>
+    <button class="f-btn" data-filter="flipkart">Flipkart</button>
+    <!-- ADD MORE FILTERS HERE — just copy a line above and change data-filter and label -->
+    <select class="sort-select" id="sortSelect">
+      <option value="default">Sort: Featured</option>
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+      <option value="name">Name A–Z</option>
+    </select>
+  </div>
 
-/* ===== HEADER ===== */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 30px;
-  background: var(--card-bg);
-}
+  <!-- SECTION HEADER -->
+  <div class="section-top">
+    <div class="section-title" id="sectionTitle">Top Picks This Week</div>
+    <div class="result-count" id="resultCount"></div>
+  </div>
 
-/* ===== SEARCH BAR ===== */
-.search-wrap {
-  display: flex;
-  align-items: center;
-  background: var(--bg);
-  padding: 8px 12px;
-  border-radius: 20px;
-}
+  <!-- PRODUCT GRID -->
+  <div class="grid" id="grid">
 
-.search-wrap input {
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--text);
-  margin-left: 8px;
-}
+    <!-- CARD 1 -->
+    <a href="YOUR_AFFILIATE_LINK" class="card"
+       data-name="noise max-2"
+       data-partner="amazon"
+       data-tags="audio headphones anc wireless"
+       data-price="1999">
+      <span class="badge hot">🔥 Hot</span>
+      <button class="fav-btn" data-item="Noise Max-2">♡</button>
+      <div class="image-box">
+        <img src="IMAGE_URL" alt="Noise Max-2">
+      </div>
+      <div class="info-box">
+        <div class="product-name">Noise Max-2</div>
+        <span class="partner-tag">Amazon</span>
+        <div class="price-row">
+          <span class="price">₹1,999</span>
+          <span class="old-price">₹3,499</span>
+        </div>
+        <div class="desc">ANC headphones with 40hr battery and deep bass.</div>
+        <button class="fav-action-btn" data-item="Noise Max-2">♡ Save to Favourites</button>
+      </div>
+    </a>
 
-/* ===== TITLE ===== */
-.title-wrap {
-  text-align: center;
-}
+    <!-- CARD 2 -->
+    <a href="YOUR_AFFILIATE_LINK" class="card"
+       data-name="boat rockers 255"
+       data-partner="amazon"
+       data-tags="audio earbuds wireless bass"
+       data-price="1299">
+      <span class="badge sale">Sale</span>
+      <button class="fav-btn" data-item="Boat Rockers 255">♡</button>
+      <div class="image-box">
+        <img src="IMAGE_URL" alt="Boat Rockers 255">
+      </div>
+      <div class="info-box">
+        <div class="product-name">Boat Rockers 255</div>
+        <span class="partner-tag">Amazon</span>
+        <div class="price-row">
+          <span class="price">₹1,299</span>
+          <span class="old-price">₹1,999</span>
+        </div>
+        <div class="desc">True wireless earbuds, punchy bass, IPX5 rated.</div>
+        <button class="fav-action-btn" data-item="Boat Rockers 255">♡ Save to Favourites</button>
+      </div>
+    </a>
 
-.site-title {
-  font-size: 22px;
-  font-weight: bold;
-}
+    <!-- CARD 3 -->
+    <a href="YOUR_AFFILIATE_LINK" class="card"
+       data-name="ambrane powerbank 20k"
+       data-partner="flipkart"
+       data-tags="accessories powerbank charging"
+       data-price="899">
+      <span class="badge new">New</span>
+      <button class="fav-btn" data-item="Ambrane 20K">♡</button>
+      <div class="image-box">
+        <img src="IMAGE_URL" alt="Ambrane 20K">
+      </div>
+      <div class="info-box">
+        <div class="product-name">Ambrane 20K</div>
+        <span class="partner-tag">Flipkart</span>
+        <div class="price-row">
+          <span class="price">₹899</span>
+        </div>
+        <div class="desc">20,000 mAh slim powerbank, dual USB-C output.</div>
+        <button class="fav-action-btn" data-item="Ambrane 20K">♡ Save to Favourites</button>
+      </div>
+    </a>
 
-.site-title span {
-  color: var(--accent);
-}
+    <!-- CARD 4 -->
+    <a href="YOUR_AFFILIATE_LINK" class="card"
+       data-name="mi smart band 8"
+       data-partner="amazon"
+       data-tags="health fitness tracker band"
+       data-price="2499">
+      <span class="badge hot">🔥 Hot</span>
+      <button class="fav-btn" data-item="Mi Band 8">♡</button>
+      <div class="image-box">
+        <img src="IMAGE_URL" alt="Mi Band 8">
+      </div>
+      <div class="info-box">
+        <div class="product-name">Mi Band 8</div>
+        <span class="partner-tag">Amazon</span>
+        <div class="price-row">
+          <span class="price">₹2,499</span>
+          <span class="old-price">₹3,999</span>
+        </div>
+        <div class="desc">16-day battery, SpO2, sleep & stress tracking.</div>
+        <button class="fav-action-btn" data-item="Mi Band 8">♡ Save to Favourites</button>
+      </div>
+    </a>
 
-.site-sub {
-  font-size: 12px;
-  color: var(--muted);
-}
+    <!-- CARD 5 -->
+    <a href="YOUR_AFFILIATE_LINK" class="card"
+       data-name="philips air purifier"
+       data-partner="flipkart"
+       data-tags="home air purifier health"
+       data-price="7999">
+      <button class="fav-btn" data-item="Philips Purifier">♡</button>
+      <div class="image-box">
+        <img src="IMAGE_URL" alt="Philips Purifier">
+      </div>
+      <div class="info-box">
+        <div class="product-name">Philips Purifier</div>
+        <span class="partner-tag">Flipkart</span>
+        <div class="price-row">
+          <span class="price">₹7,999</span>
+          <span class="old-price">₹11,000</span>
+        </div>
+        <div class="desc">HEPA filter, covers 333 sq ft, real-time AQI display.</div>
+        <button class="fav-action-btn" data-item="Philips Purifier">♡ Save to Favourites</button>
+      </div>
+    </a>
 
-/* ===== BUTTON ===== */
-.theme-btn {
-  border: none;
-  background: var(--bg);
-  padding: 8px 12px;
-  border-radius: 50%;
-  cursor: pointer;
-}
+    <!-- CARD 6 -->
+    <a href="YOUR_AFFILIATE_LINK" class="card"
+       data-name="portronics cable trio"
+       data-partner="amazon"
+       data-tags="accessories cable charging"
+       data-price="399">
+      <span class="badge sale">Sale</span>
+      <button class="fav-btn" data-item="Portronics Trio">♡</button>
+      <div class="image-box">
+        <img src="IMAGE_URL" alt="Portronics Trio">
+      </div>
+      <div class="info-box">
+        <div class="product-name">Portronics Trio</div>
+        <span class="partner-tag">Amazon</span>
+        <div class="price-row">
+          <span class="price">₹399</span>
+          <span class="old-price">₹699</span>
+        </div>
+        <div class="desc">3-in-1 cable: USB-C, Lightning & micro-USB in one.</div>
+        <button class="fav-action-btn" data-item="Portronics Trio">♡ Save to Favourites</button>
+      </div>
+    </a>
 
-/* ===== SECTION ===== */
-.section-top {
-  text-align: center;
-  margin: 30px 0;
-}
+    <!-- COPY THIS BLOCK TO ADD A NEW PRODUCT:
 
-.section-eyebrow {
-  color: var(--accent);
-  font-size: 12px;
-  letter-spacing: 2px;
-}
+    <a href="YOUR_AFFILIATE_LINK" class="card"
+       data-name="product name lowercase"
+       data-partner="amazon"
+       data-tags="category1 category2"
+       data-price="000">
+      <span class="badge hot">🔥 Hot</span>
+      <button class="fav-btn" data-item="Product Name">♡</button>
+      <div class="image-box">
+        <img src="IMAGE_URL" alt="Product Name">
+      </div>
+      <div class="info-box">
+        <div class="product-name">Product Name</div>
+        <span class="partner-tag">Amazon</span>
+        <div class="price-row">
+          <span class="price">₹000</span>
+          <span class="old-price">₹000</span>
+        </div>
+        <div class="desc">Short description here.</div>
+        <button class="fav-action-btn" data-item="Product Name">♡ Save to Favourites</button>
+      </div>
+    </a>
 
-.section-title {
-  font-size: 20px;
-  font-weight: bold;
-}
+    -->
 
-/* ===== GRID (3 PER ROW) ===== */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 🔥 3 per row */
-  gap: 40px;
-  padding: 20px 40px;
-}
+  </div>
 
-/* ===== CARD ===== */
-.card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+  <!-- NO RESULTS -->
+  <div id="no-results">
+    <div class="nr-icon">&#128269;</div>
+    <div class="nr-title">No results found</div>
+    <div class="nr-sub">Nothing matched "<span id="noResultQuery"></span>" — try a different keyword or filter.</div>
+  </div>
 
-/* IMAGE */
-.card img {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 15px;
-  margin-bottom: -40px;
-  z-index: 2;
-  background: #000;
-}
+  <!-- FOOTER -->
+  <div class="footer-strip">
+    <span><span class="dot"></span>Verified affiliate links only</span>
+    <span><span class="dot"></span>Updated daily</span>
+    <span><span class="dot"></span>No paid placements</span>
+  </div>
 
-/* INFO BOX */
-.card-info {
-  background: var(--card-bg);
-  padding: 50px 15px 20px;
-  border-radius: 15px;
-  text-align: center;
-  width: 100%;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-
-/* TEXT */
-.card-info h3 {
-  margin: 10px 0;
-}
-
-.tag {
-  font-size: 10px;
-  background: var(--bg);
-  padding: 3px 8px;
-  border-radius: 10px;
-  display: inline-block;
-  margin-bottom: 5px;
-}
-
-.price {
-  font-weight: bold;
-  color: var(--accent);
-}
-
-.desc {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* ===== NO RESULTS ===== */
-#noResults {
-  text-align: center;
-  margin-top: 20px;
-  color: var(--muted);
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 900px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-}
+</div>
+<script src="script.js"></script>
+</body>
+</html>
