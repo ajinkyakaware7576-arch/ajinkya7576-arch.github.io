@@ -1,248 +1,340 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Best Finds</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#f7f5f2;--bg2:#eeeae4;--surface:#ffffff;
+--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+--t1:#111010;--t2:#4a4845;--t3:#9a9590;
+--accent:#e8541a;--accent2:#f07340;--accent-soft:rgba(232,84,26,0.10);
+--price:#c9400d;--pill-bg:rgba(232,84,26,0.10);--pill-text:#c9400d;
+--info-bg:#ffffff;--info-border:rgba(0,0,0,0.09);
+--img-bg:#e8e4de;--img-border:rgba(0,0,0,0.10);
+--shadow:0 2px 16px rgba(0,0,0,0.08);
+--badge-hot-bg:#fef3ee;--badge-hot-text:#c9400d;
+--badge-new-bg:#eef6ee;--badge-new-text:#2d6e2d;
+--badge-sale-bg:#fff8e1;--badge-sale-text:#9a6400;
+--filter-active-bg:#111010;--filter-active-text:#f7f5f2;
+--filter-bg:rgba(0,0,0,0.05);--filter-text:#4a4845;
+--fav-active:#e8541a;
+}
+#root.dark{
+--bg:#111010;--bg2:#1a1918;--surface:#1f1e1c;
+--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+--t1:#f0ece6;--t2:#a09b94;--t3:#5a5652;
+--accent:#f07340;--accent2:#f5956a;--accent-soft:rgba(240,115,64,0.12);
+--price:#f07340;--pill-bg:rgba(240,115,64,0.13);--pill-text:#f07340;
+--info-bg:#1f1e1c;--info-border:rgba(255,255,255,0.08);
+--img-bg:#2a2826;--img-border:rgba(255,255,255,0.09);
+--shadow:0 2px 20px rgba(0,0,0,0.45);
+--badge-hot-bg:#2a1a12;--badge-hot-text:#f07340;
+--badge-new-bg:#122212;--badge-new-text:#5cb85c;
+--badge-sale-bg:#221e0a;--badge-sale-text:#d4a017;
+--filter-active-bg:#f0ece6;--filter-active-text:#111010;
+--filter-bg:rgba(255,255,255,0.07);--filter-text:#a09b94;
+--fav-active:#f07340;
+}
+html,body{background:var(--bg);transition:background .3s}
+#root{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;transition:background .3s,color .3s}
+
+.nav{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--border2);position:sticky;top:0;z-index:20;transition:background .3s}
+.nav-logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--t1);letter-spacing:-0.5px;white-space:nowrap}
+.nav-logo span{color:var(--accent)}
+.nav-center{display:flex;align-items:center;justify-content:center}
+.search-wrap{position:relative;width:100%;max-width:360px}
+.search-wrap input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:28px;padding:9px 16px 9px 38px;color:var(--t1);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s,background .3s}
+.search-wrap input::placeholder{color:var(--t3)}
+.search-wrap input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px var(--accent-soft)}
+.s-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;opacity:.4;pointer-events:none}
+.nav-right{display:flex;align-items:center;gap:10px}
+.theme-btn{background:var(--filter-bg);border:1px solid var(--border2);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:transform .35s,background .2s;color:var(--t1)}
+.theme-btn:hover{transform:rotate(180deg)}
+.fav-nav-btn{background:var(--filter-bg);border:1px solid var(--border2);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 16px;border-radius:24px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s}
+.fav-nav-btn:hover{background:var(--accent-soft);border-color:var(--accent)}
+.fav-heart-icon{font-size:15px;color:var(--accent)}
+.fav-count{background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+.hero{padding:40px 28px 32px;border-bottom:1px solid var(--border)}
+.hero-title{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--t1);line-height:1.1;letter-spacing:-1px}
+.hero-title em{font-style:italic;color:var(--accent);font-family:'DM Sans',sans-serif;font-weight:400;font-size:30px}
+
+.filters-bar{padding:16px 28px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.filters-bar::-webkit-scrollbar{display:none}
+.filter-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-right:4px;white-space:nowrap;flex-shrink:0}
+.f-btn{background:var(--filter-bg);border:1px solid var(--border2);color:var(--filter-text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 16px;border-radius:24px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .18s,color .18s,border-color .18s}
+.f-btn:hover{border-color:var(--accent);color:var(--accent)}
+.f-btn.active{background:var(--filter-active-bg);color:var(--filter-active-text);border-color:transparent}
+.sort-select{margin-left:auto;flex-shrink:0;background:var(--filter-bg);border:1px solid var(--border2);color:var(--filter-text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 12px;border-radius:24px;cursor:pointer;outline:none}
+
+.section-top{padding:20px 28px 14px;display:flex;align-items:baseline;justify-content:space-between}
+.section-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--t1)}
+.result-count{font-size:13px;color:var(--t3)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;padding:0 28px 40px}
+.card{text-decoration:none;color:var(--t1);display:flex;flex-direction:column;align-items:center;transition:transform .25s;position:relative}
+.card:hover{transform:translateY(-6px)}
+.card.hidden{display:none}
+
+.badge{position:absolute;top:10px;left:50%;transform:translateX(-50%) translateX(-55px);z-index:3;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.badge.hot{background:var(--badge-hot-bg);color:var(--badge-hot-text)}
+.badge.new{background:var(--badge-new-bg);color:var(--badge-new-text)}
+.badge.sale{background:var(--badge-sale-bg);color:var(--badge-sale-text)}
+
+.fav-btn{position:absolute;top:8px;right:calc(50% - 90px);z-index:4;background:var(--surface);border:1px solid var(--border2);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:transform .2s,background .2s;line-height:1}
+.fav-btn:hover{transform:scale(1.15)}
+.fav-btn.active{background:var(--fav-active);border-color:var(--fav-active)}
+
+.image-box{width:155px;height:155px;border-radius:22px;background:var(--img-bg);border:1.5px solid var(--img-border);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;flex-shrink:0;transition:background .3s}
+.img-ph{font-size:12px;color:var(--t3);letter-spacing:1px}
+.info-box{margin-top:-22px;width:calc(100% + 10px);background:var(--info-bg);border:1px solid var(--info-border);border-radius:16px;padding:30px 14px 16px;text-align:center;position:relative;z-index:1;box-shadow:var(--shadow);transition:box-shadow .25s,background .3s;overflow:hidden}
+.card:hover .info-box{box-shadow:0 10px 32px rgba(0,0,0,0.14)}
+.product-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.partner-tag{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;background:var(--pill-bg);color:var(--pill-text);border-radius:20px;padding:2px 9px;margin-bottom:6px}
+.price-row{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:4px}
+.price{font-size:15px;font-weight:600;color:var(--price)}
+.old-price{font-size:12px;color:var(--t3);text-decoration:line-through}
+.desc{font-size:11.5px;color:var(--t3);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fav-action-btn{margin-top:10px;width:100%;background:var(--t1);color:var(--bg);border:none;border-radius:10px;padding:8px 0;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:opacity .2s,transform .15s}
+.fav-action-btn:hover{opacity:.82;transform:translateY(-1px)}
+.fav-action-btn:active{transform:scale(.97)}
+.fav-action-btn.faved{background:var(--fav-active);color:#fff}
+
+#no-results{display:none;flex-direction:column;align-items:center;justify-content:center;padding:64px 20px;text-align:center}
+.nr-icon{width:52px;height:52px;background:var(--bg2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px}
+.nr-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--t1);margin-bottom:6px}
+.nr-sub{font-size:13px;color:var(--t3);max-width:280px;line-height:1.5}
+
+.footer-strip{border-top:1px solid var(--border);padding:18px 28px;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.footer-strip span{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;flex-shrink:0}
+</style>
+
 <div id="root">
 
-  <nav class="nav">
-    <div class="nav-logo">The Best<span>Finds</span></div>
-    <div class="nav-center">
-      <div class="search-wrap">
-        <svg class="s-icon" viewBox="0 0 20 20" fill="none">
-          <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/>
-          <path d="M14 14l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-        <input type="text" id="searchInput" placeholder="Search by name, category, store…">
-      </div>
+<nav class="nav">
+  <div class="nav-logo">The Best<span>Finds</span></div>
+  <div class="nav-center">
+    <div class="search-wrap">
+      <svg class="s-icon" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/><path d="M14 14l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input type="text" id="searchInput" placeholder="Search by name, category, store…">
     </div>
-    <div class="nav-right">
-      <button class="theme-btn" id="themeToggle">🌙</button>
-      <button class="fav-nav-btn" id="favNavBtn">
-        <span class="fav-heart-icon">♥</span>
-        Favourites
-        <span class="fav-count" id="favCount">0</span>
-      </button>
+  </div>
+  <div class="nav-right">
+    <button class="theme-btn" id="themeToggle">🌙</button>
+    <button class="fav-nav-btn" id="favNavBtn">
+      <span class="fav-heart-icon">♥</span> Favourites <span class="fav-count" id="favCount">0</span>
+    </button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-title">Your shortcut to<br><em>the internet's best</em></div>
+</div>
+
+<div class="filters-bar">
+  <span class="filter-label">Filter</span>
+  <button class="f-btn active" data-filter="all">All</button>
+  <button class="f-btn" data-filter="audio">Audio</button>
+  <button class="f-btn" data-filter="accessories">Accessories</button>
+  <button class="f-btn" data-filter="health">Health</button>
+  <button class="f-btn" data-filter="home">Home</button>
+  <button class="f-btn" data-filter="amazon">Amazon</button>
+  <button class="f-btn" data-filter="flipkart">Flipkart</button>
+  <select class="sort-select" id="sortSelect">
+    <option value="default">Sort: Featured</option>
+    <option value="price-asc">Price: Low to High</option>
+    <option value="price-desc">Price: High to Low</option>
+    <option value="name">Name A–Z</option>
+  </select>
+</div>
+
+<div class="section-top">
+  <div class="section-title" id="sectionTitle">Top Picks This Week</div>
+  <div class="result-count" id="resultCount"></div>
+</div>
+
+<div class="grid" id="grid">
+
+  <a href="#" class="card" data-name="noise max-2" data-partner="amazon" data-tags="audio headphones anc wireless" data-price="1999">
+    <span class="badge hot">🔥 Hot</span>
+    <button class="fav-btn" data-item="Noise Max-2">♡</button>
+    <div class="image-box"><span class="img-ph">image</span></div>
+    <div class="info-box">
+      <div class="product-name">Noise Max-2</div>
+      <span class="partner-tag">Amazon</span>
+      <div class="price-row"><span class="price">₹1,999</span><span class="old-price">₹3,499</span></div>
+      <div class="desc">ANC headphones with 40hr battery and deep bass.</div>
+      <button class="fav-action-btn" data-item="Noise Max-2">♡ Save to Favourites</button>
     </div>
-  </nav>
+  </a>
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-title">Your shortcut to<br><em>the internet's best</em></div>
-  </div>
+  <a href="#" class="card" data-name="boat rockers 255" data-partner="amazon" data-tags="audio earbuds wireless bass" data-price="1299">
+    <span class="badge sale">Sale</span>
+    <button class="fav-btn" data-item="Boat Rockers 255">♡</button>
+    <div class="image-box"><span class="img-ph">image</span></div>
+    <div class="info-box">
+      <div class="product-name">Boat Rockers 255</div>
+      <span class="partner-tag">Amazon</span>
+      <div class="price-row"><span class="price">₹1,299</span><span class="old-price">₹1,999</span></div>
+      <div class="desc">True wireless earbuds, punchy bass, IPX5 rated.</div>
+      <button class="fav-action-btn" data-item="Boat Rockers 255">♡ Save to Favourites</button>
+    </div>
+  </a>
 
-  <!-- FILTERS -->
-  <div class="filters-bar">
-    <span class="filter-label">Filter</span>
-    <button class="f-btn active" data-filter="all">All</button>
-    <button class="f-btn" data-filter="audio">Audio</button>
-    <button class="f-btn" data-filter="accessories">Accessories</button>
-    <button class="f-btn" data-filter="health">Health</button>
-    <button class="f-btn" data-filter="home">Home</button>
-    <button class="f-btn" data-filter="amazon">Amazon</button>
-    <button class="f-btn" data-filter="flipkart">Flipkart</button>
-    <!-- ADD MORE FILTERS HERE — just copy a line above and change data-filter and label -->
-    <select class="sort-select" id="sortSelect">
-      <option value="default">Sort: Featured</option>
-      <option value="price-asc">Price: Low to High</option>
-      <option value="price-desc">Price: High to Low</option>
-      <option value="name">Name A–Z</option>
-    </select>
-  </div>
+  <a href="#" class="card" data-name="ambrane powerbank 20k" data-partner="flipkart" data-tags="accessories powerbank charging" data-price="899">
+    <span class="badge new">New</span>
+    <button class="fav-btn" data-item="Ambrane 20K">♡</button>
+    <div class="image-box"><span class="img-ph">image</span></div>
+    <div class="info-box">
+      <div class="product-name">Ambrane 20K</div>
+      <span class="partner-tag">Flipkart</span>
+      <div class="price-row"><span class="price">₹899</span></div>
+      <div class="desc">20,000 mAh slim powerbank, dual USB-C output.</div>
+      <button class="fav-action-btn" data-item="Ambrane 20K">♡ Save to Favourites</button>
+    </div>
+  </a>
 
-  <!-- SECTION HEADER -->
-  <div class="section-top">
-    <div class="section-title" id="sectionTitle">Top Picks This Week</div>
-    <div class="result-count" id="resultCount"></div>
-  </div>
+  <a href="#" class="card" data-name="mi smart band 8" data-partner="amazon" data-tags="health fitness tracker band" data-price="2499">
+    <span class="badge hot">🔥 Hot</span>
+    <button class="fav-btn" data-item="Mi Band 8">♡</button>
+    <div class="image-box"><span class="img-ph">image</span></div>
+    <div class="info-box">
+      <div class="product-name">Mi Band 8</div>
+      <span class="partner-tag">Amazon</span>
+      <div class="price-row"><span class="price">₹2,499</span><span class="old-price">₹3,999</span></div>
+      <div class="desc">16-day battery, SpO2, sleep & stress tracking.</div>
+      <button class="fav-action-btn" data-item="Mi Band 8">♡ Save to Favourites</button>
+    </div>
+  </a>
 
-  <!-- PRODUCT GRID -->
-  <div class="grid" id="grid">
+  <a href="#" class="card" data-name="philips air purifier" data-partner="flipkart" data-tags="home air purifier health" data-price="7999">
+    <button class="fav-btn" data-item="Philips Purifier">♡</button>
+    <div class="image-box"><span class="img-ph">image</span></div>
+    <div class="info-box">
+      <div class="product-name">Philips Purifier</div>
+      <span class="partner-tag">Flipkart</span>
+      <div class="price-row"><span class="price">₹7,999</span><span class="old-price">₹11,000</span></div>
+      <div class="desc">HEPA filter, covers 333 sq ft, real-time AQI display.</div>
+      <button class="fav-action-btn" data-item="Philips Purifier">♡ Save to Favourites</button>
+    </div>
+  </a>
 
-    <!-- CARD 1 -->
-    <a href="YOUR_AFFILIATE_LINK" class="card"
-       data-name="noise max-2"
-       data-partner="amazon"
-       data-tags="audio headphones anc wireless"
-       data-price="1999">
-      <span class="badge hot">🔥 Hot</span>
-      <button class="fav-btn" data-item="Noise Max-2">♡</button>
-      <div class="image-box">
-        <img src="IMAGE_URL" alt="Noise Max-2">
-      </div>
-      <div class="info-box">
-        <div class="product-name">Noise Max-2</div>
-        <span class="partner-tag">Amazon</span>
-        <div class="price-row">
-          <span class="price">₹1,999</span>
-          <span class="old-price">₹3,499</span>
-        </div>
-        <div class="desc">ANC headphones with 40hr battery and deep bass.</div>
-        <button class="fav-action-btn" data-item="Noise Max-2">♡ Save to Favourites</button>
-      </div>
-    </a>
-
-    <!-- CARD 2 -->
-    <a href="YOUR_AFFILIATE_LINK" class="card"
-       data-name="boat rockers 255"
-       data-partner="amazon"
-       data-tags="audio earbuds wireless bass"
-       data-price="1299">
-      <span class="badge sale">Sale</span>
-      <button class="fav-btn" data-item="Boat Rockers 255">♡</button>
-      <div class="image-box">
-        <img src="IMAGE_URL" alt="Boat Rockers 255">
-      </div>
-      <div class="info-box">
-        <div class="product-name">Boat Rockers 255</div>
-        <span class="partner-tag">Amazon</span>
-        <div class="price-row">
-          <span class="price">₹1,299</span>
-          <span class="old-price">₹1,999</span>
-        </div>
-        <div class="desc">True wireless earbuds, punchy bass, IPX5 rated.</div>
-        <button class="fav-action-btn" data-item="Boat Rockers 255">♡ Save to Favourites</button>
-      </div>
-    </a>
-
-    <!-- CARD 3 -->
-    <a href="YOUR_AFFILIATE_LINK" class="card"
-       data-name="ambrane powerbank 20k"
-       data-partner="flipkart"
-       data-tags="accessories powerbank charging"
-       data-price="899">
-      <span class="badge new">New</span>
-      <button class="fav-btn" data-item="Ambrane 20K">♡</button>
-      <div class="image-box">
-        <img src="IMAGE_URL" alt="Ambrane 20K">
-      </div>
-      <div class="info-box">
-        <div class="product-name">Ambrane 20K</div>
-        <span class="partner-tag">Flipkart</span>
-        <div class="price-row">
-          <span class="price">₹899</span>
-        </div>
-        <div class="desc">20,000 mAh slim powerbank, dual USB-C output.</div>
-        <button class="fav-action-btn" data-item="Ambrane 20K">♡ Save to Favourites</button>
-      </div>
-    </a>
-
-    <!-- CARD 4 -->
-    <a href="YOUR_AFFILIATE_LINK" class="card"
-       data-name="mi smart band 8"
-       data-partner="amazon"
-       data-tags="health fitness tracker band"
-       data-price="2499">
-      <span class="badge hot">🔥 Hot</span>
-      <button class="fav-btn" data-item="Mi Band 8">♡</button>
-      <div class="image-box">
-        <img src="IMAGE_URL" alt="Mi Band 8">
-      </div>
-      <div class="info-box">
-        <div class="product-name">Mi Band 8</div>
-        <span class="partner-tag">Amazon</span>
-        <div class="price-row">
-          <span class="price">₹2,499</span>
-          <span class="old-price">₹3,999</span>
-        </div>
-        <div class="desc">16-day battery, SpO2, sleep & stress tracking.</div>
-        <button class="fav-action-btn" data-item="Mi Band 8">♡ Save to Favourites</button>
-      </div>
-    </a>
-
-    <!-- CARD 5 -->
-    <a href="YOUR_AFFILIATE_LINK" class="card"
-       data-name="philips air purifier"
-       data-partner="flipkart"
-       data-tags="home air purifier health"
-       data-price="7999">
-      <button class="fav-btn" data-item="Philips Purifier">♡</button>
-      <div class="image-box">
-        <img src="IMAGE_URL" alt="Philips Purifier">
-      </div>
-      <div class="info-box">
-        <div class="product-name">Philips Purifier</div>
-        <span class="partner-tag">Flipkart</span>
-        <div class="price-row">
-          <span class="price">₹7,999</span>
-          <span class="old-price">₹11,000</span>
-        </div>
-        <div class="desc">HEPA filter, covers 333 sq ft, real-time AQI display.</div>
-        <button class="fav-action-btn" data-item="Philips Purifier">♡ Save to Favourites</button>
-      </div>
-    </a>
-
-    <!-- CARD 6 -->
-    <a href="YOUR_AFFILIATE_LINK" class="card"
-       data-name="portronics cable trio"
-       data-partner="amazon"
-       data-tags="accessories cable charging"
-       data-price="399">
-      <span class="badge sale">Sale</span>
-      <button class="fav-btn" data-item="Portronics Trio">♡</button>
-      <div class="image-box">
-        <img src="IMAGE_URL" alt="Portronics Trio">
-      </div>
-      <div class="info-box">
-        <div class="product-name">Portronics Trio</div>
-        <span class="partner-tag">Amazon</span>
-        <div class="price-row">
-          <span class="price">₹399</span>
-          <span class="old-price">₹699</span>
-        </div>
-        <div class="desc">3-in-1 cable: USB-C, Lightning & micro-USB in one.</div>
-        <button class="fav-action-btn" data-item="Portronics Trio">♡ Save to Favourites</button>
-      </div>
-    </a>
-
-    <!-- COPY THIS BLOCK TO ADD A NEW PRODUCT:
-
-    <a href="YOUR_AFFILIATE_LINK" class="card"
-       data-name="product name lowercase"
-       data-partner="amazon"
-       data-tags="category1 category2"
-       data-price="000">
-      <span class="badge hot">🔥 Hot</span>
-      <button class="fav-btn" data-item="Product Name">♡</button>
-      <div class="image-box">
-        <img src="IMAGE_URL" alt="Product Name">
-      </div>
-      <div class="info-box">
-        <div class="product-name">Product Name</div>
-        <span class="partner-tag">Amazon</span>
-        <div class="price-row">
-          <span class="price">₹000</span>
-          <span class="old-price">₹000</span>
-        </div>
-        <div class="desc">Short description here.</div>
-        <button class="fav-action-btn" data-item="Product Name">♡ Save to Favourites</button>
-      </div>
-    </a>
-
-    -->
-
-  </div>
-
-  <!-- NO RESULTS -->
-  <div id="no-results">
-    <div class="nr-icon">&#128269;</div>
-    <div class="nr-title">No results found</div>
-    <div class="nr-sub">Nothing matched "<span id="noResultQuery"></span>" — try a different keyword or filter.</div>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer-strip">
-    <span><span class="dot"></span>Verified affiliate links only</span>
-    <span><span class="dot"></span>Updated daily</span>
-    <span><span class="dot"></span>No paid placements</span>
-  </div>
+  <a href="#" class="card" data-name="portronics cable trio" data-partner="amazon" data-tags="accessories cable charging" data-price="399">
+    <span class="badge sale">Sale</span>
+    <button class="fav-btn" data-item="Portronics Trio">♡</button>
+    <div class="image-box"><span class="img-ph">image</span></div>
+    <div class="info-box">
+      <div class="product-name">Portronics Trio</div>
+      <span class="partner-tag">Amazon</span>
+      <div class="price-row"><span class="price">₹399</span><span class="old-price">₹699</span></div>
+      <div class="desc">3-in-1 cable: USB-C, Lightning & micro-USB in one.</div>
+      <button class="fav-action-btn" data-item="Portronics Trio">♡ Save to Favourites</button>
+    </div>
+  </a>
 
 </div>
-<script src="script.js"></script>
-</body>
-</html>
+
+<div id="no-results">
+  <div class="nr-icon">&#128269;</div>
+  <div class="nr-title">No results found</div>
+  <div class="nr-sub">Nothing matched "<span id="noResultQuery"></span>" — try a different keyword or filter.</div>
+</div>
+
+<div class="footer-strip">
+  <span><span class="dot"></span>Verified affiliate links only</span>
+  <span><span class="dot"></span>Updated daily</span>
+  <span><span class="dot"></span>No paid placements</span>
+</div>
+
+</div>
+
+<script>
+const root=document.getElementById('root');
+const themeBtn=document.getElementById('themeToggle');
+const searchInput=document.getElementById('searchInput');
+const grid=document.getElementById('grid');
+const noResults=document.getElementById('no-results');
+const noResultQuery=document.getElementById('noResultQuery');
+const sectionTitle=document.getElementById('sectionTitle');
+const resultCount=document.getElementById('resultCount');
+const sortSelect=document.getElementById('sortSelect');
+const filterBtns=document.querySelectorAll('.f-btn');
+const allCards=Array.from(document.querySelectorAll('.card'));
+const favCountEl=document.getElementById('favCount');
+
+let favSet=new Set();
+let activeFilter='all';
+let activeSort='default';
+let activeSearch='';
+
+themeBtn.addEventListener('click',()=>{
+  root.classList.toggle('dark');
+  document.body.style.background=root.classList.contains('dark')?'#111010':'#f7f5f2';
+  themeBtn.textContent=root.classList.contains('dark')?'☀️':'🌙';
+});
+
+function syncFav(item,on){
+  if(on){favSet.add(item);}else{favSet.delete(item);}
+  favCountEl.textContent=favSet.size;
+  document.querySelectorAll('.fav-btn[data-item="'+item+'"]').forEach(b=>{
+    b.classList.toggle('active',on);
+    b.textContent=on?'♥':'♡';
+  });
+  document.querySelectorAll('.fav-action-btn[data-item="'+item+'"]').forEach(b=>{
+    b.classList.toggle('faved',on);
+    b.textContent=on?'♥ Saved':'♡ Save to Favourites';
+  });
+}
+
+document.querySelectorAll('.fav-btn,.fav-action-btn').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    e.preventDefault();e.stopPropagation();
+    const item=btn.dataset.item;
+    syncFav(item,!favSet.has(item));
+  });
+});
+
+filterBtns.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    filterBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter=btn.dataset.filter;
+    applyAll();
+  });
+});
+
+sortSelect.addEventListener('change',()=>{activeSort=sortSelect.value;applyAll();});
+searchInput.addEventListener('input',()=>{activeSearch=searchInput.value.trim().toLowerCase();applyAll();});
+
+function applyAll(){
+  let visible=[];
+  allCards.forEach(c=>{
+    const name=c.dataset.name||'';
+    const partner=c.dataset.partner||'';
+    const tags=c.dataset.tags||'';
+    const full=name+' '+partner+' '+tags;
+    const matchFilter=activeFilter==='all'||tags.includes(activeFilter)||partner===activeFilter;
+    const matchSearch=!activeSearch||full.includes(activeSearch);
+    if(matchFilter&&matchSearch){c.classList.remove('hidden');visible.push(c);}
+    else{c.classList.add('hidden');}
+  });
+  if(activeSort==='price-asc')visible.sort((a,b)=>+a.dataset.price-+b.dataset.price);
+  else if(activeSort==='price-desc')visible.sort((a,b)=>+b.dataset.price-+a.dataset.price);
+  else if(activeSort==='name')visible.sort((a,b)=>a.dataset.name.localeCompare(b.dataset.name));
+  visible.forEach((c,i)=>{c.style.order=i;});
+  allCards.filter(c=>c.classList.contains('hidden')).forEach(c=>{c.style.order=999;});
+  if(visible.length===0){
+    grid.style.display='none';
+    noResultQuery.textContent=activeSearch||activeFilter;
+    noResults.style.display='flex';
+    sectionTitle.textContent='No results found';
+    resultCount.textContent='';
+  }else{
+    grid.style.display='grid';
+    noResults.style.display='none';
+    sectionTitle.textContent=activeSearch?'Results for "'+searchInput.value.trim()+'"':activeFilter==='all'?'Top Picks This Week':activeFilter.charAt(0).toUpperCase()+activeFilter.slice(1);
+    resultCount.textContent=visible.length+' item'+(visible.length!==1?'s':'');
+  }
+}
+applyAll();
+</script>
