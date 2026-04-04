@@ -61,7 +61,7 @@ html,body{background:var(--bg);transition:background .3s}
 .filters-bar{padding:16px 28px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
 .filters-bar::-webkit-scrollbar{display:none}
 .filter-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-right:4px;white-space:nowrap;flex-shrink:0}
-.f-btn{background:var(--filter-bg);border:1px solid var(--border2);color:var(--filter-text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 16px;border-radius:24px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .18s,color .18s,border-color .18s}
+.f-btn{background:var(--filter-bg);border:1px solid var(--border2);color:var(--filter-text);font-family:'Comic Sans',sans-serif;font-size:13px;padding:7px 16px;border-radius:24px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .18s,color .18s,border-color .18s}
 .f-btn:hover{border-color:var(--accent);color:var(--accent)}
 .f-btn.active{background:var(--filter-active-bg);color:var(--filter-active-text);border-color:transparent}
 .sort-select{margin-left:auto;flex-shrink:0;background:var(--filter-bg);border:1px solid var(--border2);color:var(--filter-text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 12px;border-radius:24px;cursor:pointer;outline:none}
@@ -106,7 +106,6 @@ html,body{background:var(--bg);transition:background .3s}
   max-width: 100%;
   max-height: 100%;
   object-fit: contain; /* This ensures the whole image fits without cropping */
-  padding: 10px;       /* Optional: adds a little breathing room so it doesn't touch the edges */
 }
 .info-box{margin-top:-22px;width:calc(100% + 10px);background:var(--info-bg);border:1px solid var(--info-border);border-radius:16px;padding:30px 14px 16px;text-align:center;position:relative;z-index:1;box-shadow:var(--shadow);transition:box-shadow .25s,background .3s;overflow:hidden}
 .card:hover .info-box{box-shadow:0 10px 32px rgba(0,0,0,0.14)}
@@ -159,7 +158,7 @@ html,body{background:var(--bg);transition:background .3s}
   <button class="f-btn" data-filter="audio">Audio</button>
   <button class="f-btn" data-filter="accessories">Accessories</button>
   <button class="f-btn" data-filter="health">Health</button>
-  <button class="f-btn" data-filter="home">Home</button>
+  <button class="f-btn" data-filter="clothes">Clothes</button>
   <button class="f-btn" data-filter="amazon">Amazon</button>
   <button class="f-btn" data-filter="flipkart">Flipkart</button>
   <select class="sort-select" id="sortSelect">
@@ -180,7 +179,7 @@ html,body{background:var(--bg);transition:background .3s}
   <a href="#" class="card" data-name="noise max-2" data-partner="amazon" data-tags="audio headphones anc wireless" data-price="1999">
     <span class="badge hot">🔥 Hot</span>
     <button class="fav-btn" data-item="Noise 2">♡</button>
-    <div class="image-box"><span class="img-ph">image</span></div>
+    <div class="image-box"><span class="img-ph">images/noise 2.png/span></div>
     <div class="info-box">
       <div class="product-name">Noise 2</div>
       <span class="partner-tag">Amazon</span>
@@ -203,16 +202,16 @@ html,body{background:var(--bg);transition:background .3s}
     </div>
   </a>
 
-  <a href="#" class="card" data-name="ambrane powerbank 20k" data-partner="flipkart" data-tags="accessories powerbank charging" data-price="899">
+  <a href="#" class="card" data-name="ambrane powerbank 20k" data-partner="flipkart" data-tags="accessories merchandise clothes" data-price="899">
     <span class="badge new">New</span>
-    <button class="fav-btn" data-item="Ambrane 20K">♡</button>
+    <button class="fav-btn" data-item="RCB Merchandise">♡</button>
     <div class="image-box"><span class="img-ph">image</span></div>
     <div class="info-box">
-      <div class="product-name">Ambrane 20K</div>
+      <div class="product-name">RCB Merchandise</div>
       <span class="partner-tag">Flipkart</span>
       <div class="price-row"><span class="price">₹899</span></div>
-      <div class="desc">20,000 mAh slim powerbank, dual USB-C output.</div>
-      <button class="fav-action-btn" data-item="Ambrane 20K">♡ Save to Favourites</button>
+      <div class="desc">"Ee SALA CUP NAMDU".</div>
+      <button class="fav-action-btn" data-item="RCB Merchandise">♡ Save to Favourites</button>
     </div>
   </a>
 
