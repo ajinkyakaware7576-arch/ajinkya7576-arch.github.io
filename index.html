@@ -130,7 +130,7 @@ html,body{background:var(--bg);transition:background .3s}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;flex-shrink:0}
 </style>
 
-<div id="root">
+<div id="root" class="dark">
 
 <nav class="nav">
   <div class="nav-logo">The Best<span>Finds</span></div>
@@ -141,7 +141,7 @@ html,body{background:var(--bg);transition:background .3s}
     </div>
   </div>
   <div class="nav-right">
-    <button class="theme-btn" id="themeToggle">🌙</button>
+   <button class="theme-btn" id="themeToggle">☀️</button>
     <button class="fav-nav-btn" id="favNavBtn">
       <span class="fav-heart-icon">♥</span> Favourites <span class="fav-count" id="favCount">0</span>
     </button>
@@ -282,10 +282,10 @@ let activeFilter='all';
 let activeSort='default';
 let activeSearch='';
 
-themeBtn.addEventListener('click',()=>{
+themeBtn.addEventListener('click', () => {
   root.classList.toggle('dark');
-  document.body.style.background=root.classList.contains('dark')?'#111010':'#f7f5f2';
-  themeBtn.textContent=root.classList.contains('dark')?'☀️':'🌙';
+  document.body.style.background = root.classList.contains('dark') ? '#111010' : '#f7f5f2';
+  themeBtn.textContent = root.classList.contains('dark') ? '☀️' : '🌙';
 });
 
 function syncFav(item,on){
