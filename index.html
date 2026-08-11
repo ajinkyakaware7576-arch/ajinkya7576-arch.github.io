@@ -1,392 +1,759 @@
-
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
---bg:#f7f5f2;--bg2:#eeeae4;--surface:#ffffff;
---border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
---t1:#111010;--t2:#4a4845;--t3:#9a9590;
---accent:#e8541a;--accent2:#f07340;--accent-soft:rgba(232,84,26,0.10);
---price:#c9400d;--pill-bg:rgba(232,84,26,0.10);--pill-text:#c9400d;
---info-bg:#ffffff;--info-border:rgba(0,0,0,0.09);
---img-bg:#e8e4de;--img-border:rgba(0,0,0,0.10);
---shadow:0 2px 16px rgba(0,0,0,0.08);
---badge-hot-bg:#fef3ee;--badge-hot-text:#c9400d;
---badge-new-bg:#eef6ee;--badge-new-text:#2d6e2d;
---badge-sale-bg:#fff8e1;--badge-sale-text:#9a6400;
---filter-active-bg:#111010;--filter-active-text:#f7f5f2;
---filter-bg:rgba(0,0,0,0.05);--filter-text:#4a4845;
---fav-active:#e8541a;
-}
-#root.dark{
---bg:#111010;--bg2:#1a1918;--surface:#1f1e1c;
---border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
---t1:#f0ece6;--t2:#a09b94;--t3:#5a5652;
---accent:#f07340;--accent2:#f5956a;--accent-soft:rgba(240,115,64,0.12);
---price:#f07340;--pill-bg:rgba(240,115,64,0.13);--pill-text:#f07340;
---info-bg:#1f1e1c;--info-border:rgba(255,255,255,0.08);
---img-bg:#2a2826;--img-border:rgba(255,255,255,0.09);
---shadow:0 2px 20px rgba(0,0,0,0.45);
---badge-hot-bg:#2a1a12;--badge-hot-text:#f07340;
---badge-new-bg:#122212;--badge-new-text:#5cb85c;
---badge-sale-bg:#221e0a;--badge-sale-text:#d4a017;
---filter-active-bg:#f0ece6;--filter-active-text:#111010;
---filter-bg:rgba(255,255,255,0.07);--filter-text:#a09b94;
---fav-active:#f07340;
-}
-html,body{background:var(--bg);transition:background .3s}
-#root{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;transition:background .3s,color .3s}
-
-.nav{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--border2);position:sticky;top:0;z-index:20;transition:background .3s}
-.nav-logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--t1);letter-spacing:-0.5px;white-space:nowrap}
-.nav-logo span{color:var(--accent)}
-.nav-center{display:flex;align-items:center;justify-content:center}
-.search-wrap{position:relative;width:100%;max-width:360px}
-.search-wrap input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:28px;padding:9px 16px 9px 38px;color:var(--t1);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s,background .3s}
-.search-wrap input::placeholder{color:var(--t3)}
-.search-wrap input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px var(--accent-soft)}
-.s-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;opacity:.4;pointer-events:none}
-.nav-right{display:flex;align-items:center;gap:10px}
-.theme-btn{background:var(--filter-bg);border:1px solid var(--border2);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:transform .35s,background .2s;color:var(--t1)}
-.theme-btn:hover{transform:rotate(180deg)}
-.fav-nav-btn{background:var(--filter-bg);border:1px solid var(--border2);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 16px;border-radius:24px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s}
-.fav-nav-btn:hover{background:var(--accent-soft);border-color:var(--accent)}
-.fav-heart-icon{font-size:15px;color:var(--accent)}
-.fav-count{background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700}
-
-.hero{padding:40px 28px 32px;border-bottom:1px solid var(--border)}
-.hero-title{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--t1);line-height:1.1;letter-spacing:-1px}
-.hero-title em{font-style:italic;color:var(--accent);font-family:'DM Sans',sans-serif;font-weight:500;font-size:30px}
-.hero-subtitle{color:var(--accent);font-family:'DM Sans',sans-serif;font-weight:200;font-size:15px}
-
-.filters-bar{padding:16px 28px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
-.filters-bar::-webkit-scrollbar{display:none}
-.filter-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-right:4px;white-space:nowrap;flex-shrink:0}
-.f-btn{background:var(--filter-bg);border:1px solid var(--border2);color:var(--filter-text);font-family:'Comic Sans',sans-serif;font-size:13px;padding:7px 16px;border-radius:24px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .18s,color .18s,border-color .18s}
-.f-btn:hover{border-color:var(--accent);color:var(--accent)}
-.f-btn.active{background:var(--filter-active-bg);color:var(--filter-active-text);border-color:transparent}
-.sort-select{margin-left:auto;flex-shrink:0;background:var(--filter-bg);border:1px solid var(--border2);color:var(--filter-text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 12px;border-radius:24px;cursor:pointer;outline:none}
-
-.section-top{padding:20px 28px 14px;display:flex;align-items:baseline;justify-content:space-between}
-.section-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--t1)}
-.result-count{font-size:13px;color:var(--t3)}
-
-  .grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  padding: 0 28px 40px;
-}
-
-@media (max-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    padding: 0 20px 40px;
-  }
-}
-
-@media (max-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    padding: 0 14px 40px;
-  }
-}
-  
-.card{text-decoration:none;color:var(--t1);display:flex;flex-direction:column;align-items:center;transition:transform .25s;position:relative}
-.card:hover{transform:translateY(-6px)}
-.card.hidden{display:none}
-
-.badge{position:absolute;top:10px;left:50%;transform:translateX(-50%) translateX(-55px);z-index:3;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:3px 9px;border-radius:20px;white-space:nowrap}
-.badge.hot{background:var(--badge-hot-bg);color:var(--badge-hot-text)}
-.badge.new{background:var(--badge-new-bg);color:var(--badge-new-text)}
-.badge.sale{background:var(--badge-sale-bg);color:var(--badge-sale-text)}
-
-.fav-btn{position:absolute;top:8px;right:calc(50% - 90px);z-index:4;background:var(--surface);border:1px solid var(--border2);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:transform .2s,background .2s;line-height:1}
-.fav-btn:hover{transform:scale(1.15)}
-.fav-btn.active{background:var(--fav-active);border-color:var(--fav-active)}
-
-/* Update youiiiiitist*/
-.image-box {
-  width: 155px;
-  height: 155px;
-  border-radius: 22px;
-  background: var(--img-bg);
-  border: 1.5px solid var(--img-border);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 2;
-  flex-shrink: 0;
-  transition: background .3s;
-}
-
-/* Add this specifically for the image inside the box  */
-.image-box img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain; /* This ensures the whole image fits without croppin */
-}
-.info-box{margin-top:-22px;width:calc(100% + 10px);background:var(--info-bg);border:1px solid var(--info-border);border-radius:16px;padding:30px 14px 16px;text-align:center;position:relative;z-index:1;box-shadow:var(--shadow);transition:box-shadow .25s,background .3s;overflow:hidden}
-.card:hover .info-box{box-shadow:0 10px 32px rgba(0,0,0,0.14)}
-.product-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.partner-tag{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;background:var(--pill-bg);color:var(--pill-text);border-radius:20px;padding:2px 9px;margin-bottom:6px}
-.price-row{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:4px}
-.price{font-size:15px;font-weight:600;color:var(--price)}
-.old-price{font-size:12px;color:var(--t3);text-decoration:line-through}
-.desc{font-size:11.5px;color:var(--t3);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.fav-action-btn{margin-top:10px;width:100%;background:var(--t1);color:var(--bg);border:none;border-radius:10px;padding:8px 0;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:opacity .2s,transform .15s}
-.fav-action-btn:hover{opacity:.82;transform:translateY(-1px)}
-.fav-action-btn:active{transform:scale(.97)}
-.fav-action-btn.faved{background:var(--fav-active);color:#fff}
-
-#no-results{display:none;flex-direction:column;align-items:center;justify-content:center;padding:64px 20px;text-align:center}
-.nr-icon{width:52px;height:52px;background:var(--bg2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px}
-.nr-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--t1);margin-bottom:6px}
-.nr-sub{font-size:13px;color:var(--t3);max-width:280px;line-height:1.5}
-
-.footer-strip{border-top:1px solid var(--border);padding:18px 28px;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
-.footer-strip span{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;flex-shrink:0}
-</style>
-
+cat > /mnt/user-data/outputs/study-group-chat.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Group</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --chalkboard: #1E3B34;
+    --chalkboard-dark: #16302A;
+    --chalk: #F4F1E8;
+    --paper: #FBF8F1;
+    --paper-line: #E4DCC8;
+    --highlighter: #F2C14E;
+    --marker-coral: #E2694B;
+    --ink: #2B2B26;
+    --slate: #3F5C52;
+    --slate-light: #567268;
+    --error: #E2694B;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:var(--chalkboard-dark);
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    height:100vh;
+    max-height:820px;
+    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,0.45);
+    position:relative;
+  }
+  @media (min-width:520px){
+    #app{ border-radius:18px; margin:20px; height:calc(100vh - 40px); }
+  }
 
-<div id="root" class="dark">
+  /* ---------- AUTH SCREEN ---------- */
+  .auth-wrap{
+    flex:1;
+    background:var(--chalkboard);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+    position:relative;
+    overflow:hidden;
+  }
+  .auth-wrap::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image: radial-gradient(rgba(244,241,232,0.05) 1px, transparent 1px);
+    background-size:14px 14px;
+    pointer-events:none;
+  }
+  .auth-card{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:340px;
+    text-align:center;
+  }
+  .auth-title{
+    font-family:'Kalam',cursive;
+    color:var(--chalk);
+    font-size:2.4rem;
+    font-weight:700;
+    margin:0;
+    letter-spacing:0.5px;
+  }
+  .squiggle{ margin:2px auto 6px; display:block; }
+  .auth-sub{
+    font-family:'Space Mono',monospace;
+    color:var(--highlighter);
+    font-size:0.72rem;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin:0 0 28px;
+  }
+  .field{
+    text-align:left;
+    margin-bottom:14px;
+  }
+  .field label{
+    display:block;
+    font-family:'Space Mono',monospace;
+    font-size:0.68rem;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--slate-light);
+    background:var(--paper);
+    display:inline-block;
+    padding:0 2px;
+    margin-left:10px;
+    position:relative;
+    top:9px;
+  }
+  .field input{
+    width:100%;
+    padding:13px 14px;
+    border-radius:10px;
+    border:2px solid var(--slate);
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:0.95rem;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  .field input:focus{ border-color:var(--highlighter); }
+  .auth-btn{
+    width:100%;
+    padding:13px;
+    margin-top:8px;
+    border:none;
+    border-radius:10px;
+    background:var(--highlighter);
+    color:var(--chalkboard-dark);
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:0.95rem;
+    cursor:pointer;
+    letter-spacing:0.3px;
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  .auth-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(242,193,78,0.35); }
+  .auth-btn:disabled{ opacity:0.6; cursor:default; transform:none; box-shadow:none; }
+  .auth-hint{
+    margin-top:16px;
+    color:rgba(244,241,232,0.55);
+    font-size:0.78rem;
+    line-height:1.4;
+  }
+  .auth-error{
+    margin-top:14px;
+    color:var(--error);
+    background:rgba(226,105,75,0.12);
+    border:1px solid rgba(226,105,75,0.4);
+    padding:9px 12px;
+    border-radius:8px;
+    font-size:0.82rem;
+    display:none;
+  }
 
-<nav class="nav">
-  <div class="nav-logo">The Best<span>Finds</span></div>
-  <div class="nav-center">
-    <div class="search-wrap">
-      <svg class="s-icon" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/><path d="M14 14l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <input type="text" id="searchInput" placeholder="Search by name, category, store…">
-    </div>
-  </div>
-  <div class="nav-right">
-   <button class="theme-btn" id="themeToggle">☀️</button>
-    <button class="fav-nav-btn" id="favNavBtn">
-      <span class="fav-heart-icon">♥</span> Favourites <span class="fav-count" id="favCount">0</span>
-    </button>
-  </div>
-</nav>
+  /* ---------- CHAT SCREEN ---------- */
+  .header{
+    background:var(--chalkboard);
+    padding:18px 20px 14px;
+    position:relative;
+    flex-shrink:0;
+  }
+  .header-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+  }
+  .header-title{
+    font-family:'Kalam',cursive;
+    color:var(--chalk);
+    font-size:1.7rem;
+    font-weight:700;
+    margin:0;
+  }
+  .leave-btn{
+    background:none;
+    border:1px solid rgba(244,241,232,0.35);
+    color:rgba(244,241,232,0.8);
+    font-family:'Space Mono',monospace;
+    font-size:0.65rem;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    padding:6px 10px;
+    border-radius:7px;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .leave-btn:hover{ border-color:var(--highlighter); color:var(--highlighter); }
+  .online-row{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-top:4px;
+  }
+  .online-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#6FCF97;
+    box-shadow:0 0 0 0 rgba(111,207,151,0.6);
+    animation:pulse 1.8s infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(111,207,151,0.55); }
+    70%{ box-shadow:0 0 0 7px rgba(111,207,151,0); }
+    100%{ box-shadow:0 0 0 0 rgba(111,207,151,0); }
+  }
+  .online-text{
+    font-family:'Space Mono',monospace;
+    font-size:0.72rem;
+    letter-spacing:0.5px;
+    color:rgba(244,241,232,0.8);
+  }
+  .lock-note{
+    font-family:'Space Mono',monospace;
+    font-size:0.62rem;
+    color:rgba(244,241,232,0.45);
+    margin-top:5px;
+    letter-spacing:0.4px;
+  }
 
-<div class="hero">
-  <div class="hero-title">Your shortcut to<br><em>the internet's BEST .</em></div>
-  <div class="hero-subtitle"> Just a landing page click the image to go for buying page
-</div>
+  .messages{
+    flex:1;
+    overflow-y:auto;
+    padding:18px 16px;
+    background:
+      repeating-linear-gradient(var(--paper), var(--paper) 31px, var(--paper-line) 32px);
+  }
+  .msg-row{
+    display:flex;
+    margin-bottom:14px;
+  }
+  .msg-row.own{ justify-content:flex-end; }
+  .msg-row.other{ justify-content:flex-start; }
+  .msg-block{ max-width:78%; }
+  .msg-name{
+    font-family:'Space Mono',monospace;
+    font-size:0.68rem;
+    letter-spacing:0.5px;
+    margin-bottom:3px;
+    padding:0 4px;
+  }
+  .msg-row.other .msg-name{ color:var(--slate); text-align:left; }
+  .msg-row.own .msg-name{ color:#B5843A; text-align:right; }
+  .bubble{
+    padding:9px 13px;
+    border-radius:14px;
+    font-size:0.92rem;
+    line-height:1.4;
+    word-wrap:break-word;
+    white-space:pre-wrap;
+  }
+  .msg-row.other .bubble{
+    background:var(--slate);
+    color:var(--chalk);
+    border-bottom-left-radius:4px;
+  }
+  .msg-row.own .bubble{
+    background:var(--highlighter);
+    color:var(--chalkboard-dark);
+    border-bottom-right-radius:4px;
+  }
+  .msg-image{
+    max-width:220px;
+    max-height:280px;
+    display:block;
+    border-radius:14px;
+    cursor:zoom-in;
+    box-shadow:0 2px 10px rgba(0,0,0,0.25);
+  }
+  .msg-row.other .msg-image{ border-bottom-left-radius:4px; }
+  .msg-row.own .msg-image{ border-bottom-right-radius:4px; }
+  .msg-time{
+    font-family:'Space Mono',monospace;
+    font-size:0.62rem;
+    opacity:0.55;
+    margin-top:3px;
+    padding:0 4px;
+  }
+  .msg-row.own .msg-time{ text-align:right; }
+  .empty-state{
+    text-align:center;
+    color:var(--slate-light);
+    font-size:0.85rem;
+    margin-top:40px;
+    font-family:'Space Mono',monospace;
+    line-height:1.6;
+  }
 
-<div class="filters-bar">
-  <span class="filter-label">Filter</span>
-  <button class="f-btn active" data-filter="all">All</button>
-  <button class="f-btn" data-filter="audio">Audio</button>
-  <button class="f-btn" data-filter="accessories">Accessories</button>
-  <button class="f-btn" data-filter="health">Health</button>
-  <button class="f-btn" data-filter="clothes">Clothes</button>
-  <button class="f-btn" data-filter="amazon">Amazon</button>
-  <button class="f-btn" data-filter="flipkart">Flipkart</button>
-  <select class="sort-select" id="sortSelect">
-    <option value="default">Sort: Featured</option>
-    <option value="price-asc">Price: Low to High</option>
-    <option value="price-desc">Price: High to Low</option>
-    <option value="name">Name A–Z</option>
-  </select>
-</div>
+  .composer{
+    display:flex;
+    gap:8px;
+    padding:12px 14px;
+    background:var(--chalkboard);
+    flex-shrink:0;
+    align-items:center;
+  }
+  .composer input[type="text"]{
+    flex:1;
+    padding:12px 15px;
+    border-radius:22px;
+    border:none;
+    outline:none;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:0.92rem;
+  }
+  .icon-btn{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    border:none;
+    font-size:1.05rem;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    transition:transform .1s ease;
+  }
+  .icon-btn:hover{ transform:scale(1.06); }
+  .icon-btn:disabled{ opacity:0.5; cursor:default; transform:none; }
+  .attach-btn{ background:var(--slate); color:var(--chalk); }
+  .send-btn{ background:var(--highlighter); color:var(--chalkboard-dark); }
 
-<div class="section-top">
-  <div class="section-title" id="sectionTitle">Top Picks This Week</div>
-  <div class="result-count" id="resultCount"></div>
-</div>
+  .toast{
+    position:absolute;
+    bottom:78px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(22,48,42,0.95);
+    color:var(--chalk);
+    padding:8px 16px;
+    border-radius:20px;
+    font-size:0.76rem;
+    font-family:'Space Mono',monospace;
+    z-index:60;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+    max-width:80%;
+    text-align:center;
+  }
+  .toast.show{ opacity:1; }
 
-<div class="grid" id="grid">
+  .lightbox{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.85);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+    padding:24px;
+    cursor:zoom-out;
+  }
+  .lightbox img{
+    max-width:100%;
+    max-height:100%;
+    border-radius:10px;
+  }
 
-    <a href="https://fktr.in/Hyvsafl" class="card" data-name="Mini Cooler" data-partner="Amazon" data-tags="health Summer accessories" data-price="599">
-    <span class="badge hot">🥶 Cool</span>
-    <button class="fav-btn" data-item="Mini Cooler">♡</button>
-    <div class="image-box"><span class="img-ph"><img src="images/mini cooler.png"></span></div>
-    <div class="info-box">
-      <div class="product-name">Mini Cooler</div>
-      <span class="partner-tag">Flipkart</span>
-      <div class="price-row"><span class="price">₹649</span><span class="old-price">₹3,999</span></div>
-      <div class="desc"> Cooler with integrated ice container, Works on power bank, cool ice breeze🤤 </div>
-      <button class="fav-action-btn" data-item="Mini Cooler">♡ Save to Favourites</button>
-    </div>
-
-    <a href="https://fktr.in/vE2WyiH" class="card" data-name="RCB Merchandise" data-partner="flipkart" data-tags="accessories merchandise clothes" data-price="899">
-    <span class="badge new">New</span>
-    <button class="fav-btn" data-item="RCB Merchandise">♡</button>
-    <div class="image-box"><span class="img-ph"><img src="images/hmm.png"></span></div>
-    <div class="info-box">
-      <div class="product-name">RCB Merchandise</div>
-      <span class="partner-tag">Flipkart</span>
-      <div class="price-row"><span class="price">₹398</span></div>
-      <div class="desc">"Ee SALA CUP NAMDU".</div>
-      <button class="fav-action-btn" data-item="RCB Merchandise">♡ Save to Favourites</button>
-    </div>
-  </a>
-
-  <a href="https://fktr.in/NYrd14w"
-    class="card" data-name="noise max-2" data-partner="flipkart" data-tags="audio headphones anc wireless" data-price="1999">
-    <span class="badge hot">🔥 Hot</span>
-    <button class="fav-btn" data-item="Noise 2">♡</button>
-  <div class="image-box"><span class="img-ph"><img src="images/noise 2.png"></span></div>
-    <div class="info-box">
-      <div class="product-name">Noise 2</div>
-      <span class="partner-tag">flipkart</span>
-      <div class="price-row"><span class="price">₹1,499</span><span class="old-price">₹3,499</span></div>
-      <div class="desc">ANC headphones with 60hr battery and deep bass.</div>
-      <button class="fav-action-btn" data-item="Noise Max-2">♡ Save to Favourites</button>
-    </div>
-  </a>
-  
-  <a href="https://fktr.in/7XmtMri"
-    class="card" data-name="boat rockers 255" data-partner="flipkart" data-tags="audio earbuds wireless bass" data-price="1299">
-    <span class="badge sale">Sale</span>
-    <button class="fav-btn" data-item="Boat 480">♡</button>
-    <div class="image-box"><span class="img-ph"><img src="images/480.png"></span></div>
-    <div class="info-box">
-      <div class="product-name">Boat 480</div>
-      <span class="partner-tag">flipkart</span>
-      <div class="price-row"><span class="price">₹1,699</span><span class="old-price">₹1,999</span></div>
-      <div class="desc">True wireless earbuds, punchy bass, IPX5 rated.</div>
-      <button class="fav-action-btn" data-item="Boat Rockers 255">♡ Save to Favourites</button>
-    </div>
-  </a>  
-
-<!--
-  <a href="#" class="card" data-name="mi smart band 8" data-partner="amazon" data-tags="health fitness tracker band" data-price="2499">
-    <span class="badge hot">🔥 Hot</span>
-    <button class="fav-btn" data-item="Mi Band 8">♡</button>
-    <div class="image-box"><span class="img-ph">image</span></div>
-    <div class="info-box">
-      <div class="product-name">Mi Band 8</div>
-      <span class="partner-tag">Amazon</span>
-      <div class="price-row"><span class="price">₹2,499</span><span class="old-price">₹3,999</span></div>
-      <div class="desc">16-day battery, SpO2, sleep & stress tracking.</div>
-      <button class="fav-action-btn" data-item="Mi Band 8">♡ Save to Favourites</button>
-    </div>
-  </a>
-
- 
-
- <a href="#" class="card" data-name="portronics cable trio" data-partner="amazon" data-tags="accessories cable charging" data-price="399">
-    <span class="badge sale">Sale</span>
-    <button class="fav-btn" data-item="Portronics Trio">♡</button>
-    <div class="image-box"><span class="img-ph">image</span></div>
-    <div class="info-box">
-      <div class="product-name">Portronics Trio</div>
-      <span class="partner-tag">Amazon</span>
-      <div class="price-row"><span class="price">₹399</span><span class="old-price">₹699</span></div>
-      <div class="desc">3-in-1 cable: USB-C, Lightning & micro-USB in one.</div>
-      <button class="fav-action-btn" data-item="Portronics Trio">♡ Save to Favourites</button>
-    </div>
-  </a>
--->
-</div>
-
-<div id="no-results">
-  <div class="nr-icon">&#128269;</div>
-  <div class="nr-title">No results found</div>
-  <div class="nr-sub">Nothing matched "<span id="noResultQuery"></span>" — try a different keyword or filter.</div>
-</div>
-
-<div class="footer-strip">
-  <span><span class="dot"></span>Verified affiliate links only</span>
-  <span><span class="dot"></span>Updated daily</span>
-  <span><span class="dot"></span>No paid placements</span>
-</div>
-
-</div>
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--paper-line); border-radius:4px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
 
 <script>
-const root=document.getElementById('root');
-const themeBtn=document.getElementById('themeToggle');
-const searchInput=document.getElementById('searchInput');
-const grid=document.getElementById('grid');
-const noResults=document.getElementById('no-results');
-const noResultQuery=document.getElementById('noResultQuery');
-const sectionTitle=document.getElementById('sectionTitle');
-const resultCount=document.getElementById('resultCount');
-const sortSelect=document.getElementById('sortSelect');
-const filterBtns=document.querySelectorAll('.f-btn');
-const allCards=Array.from(document.querySelectorAll('.card'));
-const favCountEl=document.getElementById('favCount');
+(function(){
+  const USERS_KEY = "sg_users_v2";
+  const MESSAGES_KEY = "sg_messages_v2";
+  const PRESENCE_KEY = "sg_presence_v2";
+  const ONLINE_WINDOW_MS = 9000;
+  const HEARTBEAT_MS = 4000;
+  const POLL_MS = 2000;
+  const MAX_STORED_MESSAGES = 200;
+  const CRYPTO_PASSPHRASE = "study-group-chalkboard-room-key-v1";
 
-let favSet=new Set();
-let activeFilter='all';
-let activeSort='default';
-let activeSearch='';
+  let currentUser = null;
+  let pollTimer = null;
+  let heartbeatTimer = null;
+  let cryptoKey = null;
 
-themeBtn.addEventListener('click', () => {
-  root.classList.toggle('dark');
-  document.body.style.background = root.classList.contains('dark') ? '#111010' : '#f7f5f2';
-  themeBtn.textContent = root.classList.contains('dark') ? '☀️' : '🌙';
-});
+  const app = document.getElementById('app');
 
-function syncFav(item,on){
-  if(on){favSet.add(item);}else{favSet.delete(item);}
-  favCountEl.textContent=favSet.size;
-  document.querySelectorAll('.fav-btn[data-item="'+item+'"]').forEach(b=>{
-    b.classList.toggle('active',on);
-    b.textContent=on?'♥':'♡';
-  });
-  document.querySelectorAll('.fav-action-btn[data-item="'+item+'"]').forEach(b=>{
-    b.classList.toggle('faved',on);
-    b.textContent=on?'♥ Saved':'♡ Save to Favourites';
-  });
-}
-
-document.querySelectorAll('.fav-btn,.fav-action-btn').forEach(btn=>{
-  btn.addEventListener('click',e=>{
-    e.preventDefault();e.stopPropagation();
-    const item=btn.dataset.item;
-    syncFav(item,!favSet.has(item));
-  });
-});
-
-filterBtns.forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    filterBtns.forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    activeFilter=btn.dataset.filter;
-    applyAll();
-  });
-});
-
-sortSelect.addEventListener('change',()=>{activeSort=sortSelect.value;applyAll();});
-searchInput.addEventListener('input',()=>{activeSearch=searchInput.value.trim().toLowerCase();applyAll();});
-
-function applyAll(){
-  let visible=[];
-  allCards.forEach(c=>{
-    const name=c.dataset.name||'';
-    const partner=c.dataset.partner||'';
-    const tags=c.dataset.tags||'';
-    const full=name+' '+partner+' '+tags;
-    const matchFilter=activeFilter==='all'||tags.includes(activeFilter)||partner===activeFilter;
-    const matchSearch=!activeSearch||full.includes(activeSearch);
-    if(matchFilter&&matchSearch){c.classList.remove('hidden');visible.push(c);}
-    else{c.classList.add('hidden');}
-  });
-  if(activeSort==='price-asc')visible.sort((a,b)=>+a.dataset.price-+b.dataset.price);
-  else if(activeSort==='price-desc')visible.sort((a,b)=>+b.dataset.price-+a.dataset.price);
-  else if(activeSort==='name')visible.sort((a,b)=>a.dataset.name.localeCompare(b.dataset.name));
-  visible.forEach((c,i)=>{c.style.order=i;});
-  allCards.filter(c=>c.classList.contains('hidden')).forEach(c=>{c.style.order=999;});
-  if(visible.length===0){
-    grid.style.display='none';
-    noResultQuery.textContent=activeSearch||activeFilter;
-    noResults.style.display='flex';
-    sectionTitle.textContent='No results found';
-    resultCount.textContent='';
-  }else{
-    grid.style.display='grid';
-    noResults.style.display='none';
-    sectionTitle.textContent=activeSearch?'Results for "'+searchInput.value.trim()+'"':activeFilter==='all'?'Top Picks This Week':activeFilter.charAt(0).toUpperCase()+activeFilter.slice(1);
-    resultCount.textContent=visible.length+' item'+(visible.length!==1?'s':'');
+  // ---------- encryption helpers (AES-GCM, key derived from a fixed room passphrase) ----------
+  async function getCryptoKey(){
+    if(cryptoKey) return cryptoKey;
+    const enc = new TextEncoder();
+    const hash = await crypto.subtle.digest('SHA-256', enc.encode(CRYPTO_PASSPHRASE));
+    cryptoKey = await crypto.subtle.importKey('raw', hash, {name:'AES-GCM'}, false, ['encrypt','decrypt']);
+    return cryptoKey;
   }
-}
-applyAll();
+  function bufToB64(buf){
+    const bytes = new Uint8Array(buf);
+    let bin = '';
+    for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function b64ToBuf(b64){
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+    return arr.buffer;
+  }
+  async function encryptText(plainText){
+    const key = await getCryptoKey();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const enc = new TextEncoder();
+    const cipherBuf = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(plainText));
+    return JSON.stringify({ iv: bufToB64(iv), data: bufToB64(cipherBuf) });
+  }
+  async function decryptText(payloadStr){
+    const key = await getCryptoKey();
+    const payload = JSON.parse(payloadStr);
+    const iv = new Uint8Array(b64ToBuf(payload.iv));
+    const cipherBuf = b64ToBuf(payload.data);
+    const plainBuf = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, cipherBuf);
+    return new TextDecoder().decode(plainBuf);
+  }
+
+  // ---------- storage helpers (encrypted at rest) ----------
+  async function safeGet(key){
+    try{
+      const res = await window.storage.get(key, true);
+      if(!res) return null;
+      const decrypted = await decryptText(res.value);
+      return JSON.parse(decrypted);
+    }catch(e){
+      return null;
+    }
+  }
+  async function safeSet(key, value){
+    try{
+      const encrypted = await encryptText(JSON.stringify(value));
+      const res = await window.storage.set(key, encrypted, true);
+      return !!res;
+    }catch(e){
+      console.error('storage set failed', e);
+      return false;
+    }
+  }
+
+  async function getUsers(){ return (await safeGet(USERS_KEY)) || {}; }
+  async function getMessages(){ return (await safeGet(MESSAGES_KEY)) || []; }
+  async function getPresence(){ return (await safeGet(PRESENCE_KEY)) || {}; }
+
+  // ---------- toast ----------
+  let toastTimer = null;
+  function showToast(msg){
+    let toast = document.getElementById('toast');
+    if(!toast){
+      toast = document.createElement('div');
+      toast.id = 'toast';
+      toast.className = 'toast';
+      app.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+  }
+
+  // ---------- squiggle svg ----------
+  const squiggleSvg = '<svg class="squiggle" width="120" height="14" viewBox="0 0 120 14" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M2 8 C 12 -2, 22 18, 32 8 C 42 -2, 52 18, 62 8 C 72 -2, 82 18, 92 8 C 100 1, 110 12, 118 6" stroke="#F2C14E" stroke-width="2.5" stroke-linecap="round"/>' +
+    '</svg>';
+
+  // ---------- AUTH SCREEN ----------
+  function renderAuth(errorMsg){
+    app.innerHTML = `
+      <div class="auth-wrap">
+        <div class="auth-card">
+          <h1 class="auth-title">Study Group</h1>
+          ${squiggleSvg}
+          <p class="auth-sub">sign in to join the session</p>
+          <div class="field">
+            <label>Username</label>
+            <input id="username" type="text" autocomplete="off" placeholder="e.g. priya_23" />
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input id="password" type="password" placeholder="password" />
+          </div>
+          <button class="auth-btn" id="enterBtn">Enter the group</button>
+          <div class="auth-error" id="authError">${errorMsg || ''}</div>
+          <p class="auth-hint">First time? Pick a username &amp; password, it becomes yours.<br/>Already joined? Log back in with the same password.</p>
+        </div>
+      </div>
+    `;
+    if(errorMsg){ document.getElementById('authError').style.display = 'block'; }
+
+    const btn = document.getElementById('enterBtn');
+    const uInput = document.getElementById('username');
+    const pInput = document.getElementById('password');
+
+    async function attempt(){
+      const username = uInput.value.trim();
+      const password = pInput.value;
+      if(!username || !password){
+        renderAuth('Please enter both a username and password.');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Checking...';
+      const users = await getUsers();
+      if(Object.prototype.hasOwnProperty.call(users, username)){
+        if(users[username] !== password){
+          renderAuth('That username is taken and the password is wrong.');
+          return;
+        }
+      } else {
+        users[username] = password;
+        await safeSet(USERS_KEY, users);
+      }
+      currentUser = username;
+      await markOnline();
+      renderChat();
+      startLoops();
+    }
+
+    btn.addEventListener('click', attempt);
+    pInput.addEventListener('keydown', e => { if(e.key === 'Enter') attempt(); });
+    uInput.addEventListener('keydown', e => { if(e.key === 'Enter') pInput.focus(); });
+  }
+
+  // ---------- presence ----------
+  async function markOnline(){
+    if(!currentUser) return;
+    const presence = await getPresence();
+    presence[currentUser] = Date.now();
+    await safeSet(PRESENCE_KEY, presence);
+  }
+
+  function countOnline(presence){
+    const now = Date.now();
+    return Object.values(presence).filter(ts => now - ts < ONLINE_WINDOW_MS).length;
+  }
+
+  // ---------- image compression ----------
+  function compressImage(file, maxWidth, quality){
+    maxWidth = maxWidth || 640;
+    quality = quality || 0.62;
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if(w > maxWidth){ h = Math.round(h * (maxWidth / w)); w = maxWidth; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => reject(new Error('Could not read image'));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error('Could not read file'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---------- chat screen ----------
+  function renderChat(){
+    app.innerHTML = `
+      <div class="header">
+        <div class="header-top">
+          <div>
+            <h1 class="header-title">Study Group</h1>
+          </div>
+          <button class="leave-btn" id="leaveBtn">Leave</button>
+        </div>
+        <div class="online-row">
+          <span class="online-dot"></span>
+          <span class="online-text" id="onlineText">checking...</span>
+        </div>
+        <div class="lock-note">🔒 messages &amp; images are encrypted before they're saved</div>
+      </div>
+      <div class="messages" id="messages"></div>
+      <div class="composer">
+        <button class="icon-btn attach-btn" id="attachBtn" title="Send an image">📎</button>
+        <input type="file" id="imageInput" accept="image/*" style="display:none" />
+        <input id="msgInput" type="text" placeholder="Type a message..." autocomplete="off" />
+        <button class="icon-btn send-btn" id="sendBtn">➤</button>
+      </div>
+    `;
+
+    document.getElementById('leaveBtn').addEventListener('click', leave);
+    const input = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const attachBtn = document.getElementById('attachBtn');
+    const imageInput = document.getElementById('imageInput');
+
+    sendBtn.addEventListener('click', sendMessage);
+    input.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
+    attachBtn.addEventListener('click', () => imageInput.click());
+    imageInput.addEventListener('change', handleImageSelect);
+
+    const container = document.getElementById('messages');
+    container.addEventListener('click', (e) => {
+      if(e.target.classList.contains('msg-image')){
+        openLightbox(e.target.src);
+      }
+    });
+
+    refreshMessages();
+    refreshPresence();
+  }
+
+  function openLightbox(src){
+    const overlay = document.createElement('div');
+    overlay.className = 'lightbox';
+    const img = document.createElement('img');
+    img.src = src;
+    overlay.appendChild(img);
+    overlay.addEventListener('click', () => overlay.remove());
+    document.body.appendChild(overlay);
+  }
+
+  function formatTime(ts){
+    const d = new Date(ts);
+    let h = d.getHours(); const m = d.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if(h === 0) h = 12;
+    return h + ':' + String(m).padStart(2,'0') + ' ' + ampm;
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function refreshMessages(){
+    const container = document.getElementById('messages');
+    if(!container) return;
+    const messages = await getMessages();
+    const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 40;
+
+    if(messages.length === 0){
+      container.innerHTML = '<div class="empty-state">No messages yet.<br/>Say hi to the study group 👋</div>';
+      return;
+    }
+
+    container.innerHTML = messages.map(m => {
+      const isOwn = m.username === currentUser;
+      const body = m.type === 'image'
+        ? `<img class="msg-image" src="${m.dataUrl}" alt="shared image" />`
+        : `<div class="bubble">${escapeHtml(m.text)}</div>`;
+      return `
+        <div class="msg-row ${isOwn ? 'own' : 'other'}">
+          <div class="msg-block">
+            <div class="msg-name">${escapeHtml(m.username)}</div>
+            ${body}
+            <div class="msg-time">${formatTime(m.ts)}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if(wasAtBottom || messages[messages.length - 1].username === currentUser){
+      container.scrollTop = container.scrollHeight;
+    }
+  }
+
+  async function refreshPresence(){
+    const el = document.getElementById('onlineText');
+    if(!el) return;
+    const presence = await getPresence();
+    const count = countOnline(presence);
+    el.textContent = count === 1 ? '1 person online' : (count + ' people online');
+  }
+
+  async function pushMessage(msgObj){
+    const messages = await getMessages();
+    messages.push(msgObj);
+    const trimmed = messages.length > MAX_STORED_MESSAGES
+      ? messages.slice(messages.length - MAX_STORED_MESSAGES)
+      : messages;
+    const ok = await safeSet(MESSAGES_KEY, trimmed);
+    if(!ok){ showToast("Couldn't save that message, please try again."); }
+    await refreshMessages();
+  }
+
+  async function sendMessage(){
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if(!text || !currentUser) return;
+    input.value = '';
+    await pushMessage({ username: currentUser, type: 'text', text: text, ts: Date.now() });
+  }
+
+  async function handleImageSelect(e){
+    const file = e.target.files[0];
+    e.target.value = '';
+    if(!file || !currentUser) return;
+    if(!file.type.startsWith('image/')){
+      showToast('Please choose an image file.');
+      return;
+    }
+    showToast('Sending image...');
+    try{
+      const dataUrl = await compressImage(file);
+      await pushMessage({ username: currentUser, type: 'image', dataUrl: dataUrl, ts: Date.now() });
+    }catch(err){
+      showToast('Could not send that image.');
+    }
+  }
+
+  function startLoops(){
+    stopLoops();
+    heartbeatTimer = setInterval(markOnline, HEARTBEAT_MS);
+    pollTimer = setInterval(async () => {
+      await refreshMessages();
+      await refreshPresence();
+    }, POLL_MS);
+  }
+
+  function stopLoops(){
+    if(pollTimer) clearInterval(pollTimer);
+    if(heartbeatTimer) clearInterval(heartbeatTimer);
+    pollTimer = null;
+    heartbeatTimer = null;
+  }
+
+  async function leave(){
+    stopLoops();
+    if(currentUser){
+      const presence = await getPresence();
+      delete presence[currentUser];
+      await safeSet(PRESENCE_KEY, presence);
+    }
+    currentUser = null;
+    renderAuth();
+  }
+
+  window.addEventListener('beforeunload', () => {
+    if(currentUser){
+      getPresence().then(p => { delete p[currentUser]; safeSet(PRESENCE_KEY, p); });
+    }
+  });
+
+  renderAuth();
+})();
 </script>
+</body>
+</html>
+HTMLEOF
+echo "done: $(wc -l < /mnt/user-data/outputs/study-group-chat.html) lines"
+
