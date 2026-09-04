@@ -10,17 +10,8 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<svg class="noise-layer" aria-hidden="true"><filter id="chalkNoise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#chalkNoise)"></rect></svg>
 
-<!-- Chalk dust texture overlay -->
-<svg class="noise-layer" aria-hidden="true">
-  <filter id="chalkNoise">
-    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence>
-    <feColorMatrix type="saturate" values="0"></feColorMatrix>
-  </filter>
-  <rect width="100%" height="100%" filter="url(#chalkNoise)"></rect>
-</svg>
-
-<!-- Name entry modal -->
 <div id="nameModal" class="modal-backdrop">
   <div class="modal chalk-panel">
     <h1 class="chalk-title">Pull up a chair.</h1>
@@ -31,17 +22,24 @@
   </div>
 </div>
 
-<div id="app" class="app hidden">
+<div id="focusCheckModal" class="modal-backdrop hidden">
+  <div class="modal chalk-panel focus-modal">
+    <p class="focus-small">FOCUS CHECK</p>
+    <h2 id="focusQuestion" class="chalk-title">Pick 63</h2>
+    <p class="modal-sub">Choose the number shown above.</p>
+    <div id="focusOptions" class="focus-options"></div>
+    <p id="focusFeedback" class="focus-feedback"></p>
+    <button id="focusCloseBtn" class="link-btn focus-close" type="button">Close</button>
+  </div>
+</div>
 
+<div id="app" class="app hidden">
   <header class="site-header">
     <div class="header-inner">
       <h1 class="chalk-title site-title">Study Together</h1>
       <p class="site-tagline">Two desks, one board.</p>
     </div>
-    <div class="whoami">
-      writing as <strong id="whoamiName">—</strong>
-      <button id="changeNameBtn" class="link-btn">not you?</button>
-    </div>
+    <div class="whoami">writing as <strong id="whoamiName">—</strong> <button id="changeNameBtn" class="link-btn">not you?</button></div>
   </header>
 
   <nav class="tabs" role="tablist">
@@ -52,19 +50,15 @@
   </nav>
 
   <main class="board chalk-panel">
-
-    <!-- CHAT TAB -->
     <section id="tab-chat" class="tab-panel active">
-      <div id="chatMessages" class="chat-messages">
-        <p class="empty-note">No notes on the board yet. Say hello.</p>
-      </div>
+      <div id="chatMessages" class="chat-messages"><p class="empty-note">No notes on the board yet. Say hello.</p></div>
+      <div id="replyPreview" class="reply-preview hidden"><div><strong>Replying</strong><span id="replyPreviewText"></span></div><button id="cancelReply" class="link-btn" type="button">cancel</button></div>
       <form id="chatForm" class="chat-form">
         <input id="chatInput" type="text" placeholder="Write something…" maxlength="500" autocomplete="off">
         <button type="submit" class="chalk-btn primary">Send</button>
       </form>
     </section>
 
-    <!-- TIMER TAB -->
     <section id="tab-timer" class="tab-panel">
       <div class="timer-layout">
         <div class="timer-ring-wrap">
@@ -72,94 +66,52 @@
             <circle class="ring-track" cx="110" cy="110" r="100"></circle>
             <circle id="ringProgress" class="ring-progress" cx="110" cy="110" r="100"></circle>
           </svg>
-          <div class="timer-readout">
-            <span id="timerDisplay">00:00:00</span>
-            <span id="timerState" class="timer-state">ready</span>
-          </div>
+          <div class="timer-readout"><span id="timerDisplay">00:00:00</span><span id="timerState" class="timer-state">ready</span></div>
         </div>
         <div class="timer-controls">
-          <div class="timer-today-card">
-            <span class="mini-label">Today's self-study</span>
-            <strong id="todayStudyTotal">0h 00m</strong>
-          </div>
-          <div class="action-row">
-            <button id="startPauseBtn" class="chalk-btn primary big">Start</button>
-            <button id="resetBtn" class="chalk-btn big">Reset</button>
-          </div>
-          <p class="timer-help">Start once and study normally. No 25/45/60 minute preset — the stopwatch keeps counting until you pause or reset.</p>
+          <p class="timer-description">One stopwatch. Start when you study, stop when you stop. Every session is added to your total for the day.</p>
+          <div class="action-row"><button id="startPauseBtn" class="chalk-btn primary big">Start</button><button id="resetBtn" class="chalk-btn big">Reset display</button></div>
           <p id="sessionNote" class="session-note"></p>
         </div>
       </div>
-      <div class="study-breakdown">
-        <div class="breakdown-heading">
-          <h2 class="section-label">Today's progress</h2>
-          <span id="todayDateLabel" class="muted-label"></span>
-        </div>
-        <div class="period-grid">
-          <div class="period-card"><span>Morning</span><strong id="morningStudy">0h 00m</strong></div>
-          <div class="period-card"><span>Noon</span><strong id="noonStudy">0h 00m</strong></div>
-          <div class="period-card"><span>Evening</span><strong id="eveningStudy">0h 00m</strong></div>
-          <div class="period-card total"><span>Final daily total</span><strong id="dailyStudy">0h 00m</strong></div>
-        </div>
+      <div class="minutes-today">
+        <h2 class="section-label">Today's study time</h2>
+        <div id="minutesList" class="minutes-list"><p class="empty-note">Start studying to see today's total.</p></div>
       </div>
     </section>
 
-    <!-- SCOREBOARD TAB -->
     <section id="tab-score" class="tab-panel">
-      <div class="score-intro">
-        <h2 class="section-label">Questions solved</h2>
-        <p class="muted-label">Track Chemistry, Physics and Maths separately.</p>
-      </div>
-      <div id="scoreList" class="score-list">
-        <p class="empty-note">Scores will show up here once someone logs a question.</p>
-      </div>
+      <div class="score-intro"><h2 class="section-label">Questions solved</h2><p>Log each question under Chemistry, Physics or Maths. Your daily counts feed the Analytics tab.</p></div>
+      <div id="scoreList" class="score-list"><p class="empty-note">Scores will show up here once someone logs a question.</p></div>
     </section>
 
-    <!-- ANALYTICS TAB -->
     <section id="tab-analytics" class="tab-panel">
-      <div class="analytics-head">
-        <div>
-          <h2 class="section-label">Study analytics</h2>
-          <p class="muted-label">Your self-study time and questions, grouped by day, week and month.</p>
-        </div>
-        <button id="refreshAnalyticsBtn" class="chalk-btn">Refresh</button>
+      <div class="analytics-header">
+        <div><h2 class="section-label">Analytics</h2><p id="analyticsRangeLabel" class="analytics-subtitle">Daily totals</p></div>
+        <div class="analytics-modes"><button class="analytics-mode active" data-analytics-mode="day">Day</button><button class="analytics-mode" data-analytics-mode="week">Week</button><button class="analytics-mode" data-analytics-mode="month">Month</button></div>
       </div>
-      <div class="analytics-summary" id="analyticsSummary"></div>
-      <div class="analytics-section">
-        <h3>Daily</h3>
-        <div id="dailyAnalytics" class="analytics-list"></div>
+      <div id="peopleLegend" class="people-legend"></div>
+
+      <div class="metric-tabs">
+        <button class="metric-tab active" data-analytics-metric="time">Study time</button>
+        <button class="metric-tab" data-analytics-metric="questions">Questions</button>
       </div>
-      <div class="analytics-section">
-        <h3>Weekly</h3>
-        <div id="weeklyAnalytics" class="analytics-list"></div>
+
+      <div id="metric-time" class="analytics-metric-panel active">
+        <div class="chart-card"><div class="chart-wrap"><canvas id="timeChart"></canvas></div><p id="timeEmpty" class="empty-note hidden">No study time recorded for this range yet.</p></div>
       </div>
-      <div class="analytics-section">
-        <h3>Monthly</h3>
-        <div id="monthlyAnalytics" class="analytics-list months-grid"></div>
+      <div id="metric-questions" class="analytics-metric-panel">
+        <div class="chart-card"><div class="chart-wrap"><canvas id="questionChart"></canvas></div><p id="questionEmpty" class="empty-note hidden">No questions recorded for this range yet.</p></div>
       </div>
     </section>
-
   </main>
 
-  <footer class="site-footer">
-    <p>Stored on your shared board — <a href="https://github.com" target="_blank" rel="noopener">hosted from GitHub</a>.</p>
-  </footer>
-
+  <footer class="site-footer"><p>Stored on your shared board — <a href="https://github.com" target="_blank" rel="noopener">hosted from GitHub</a>.</p></footer>
 </div>
 
-
-<!-- 10-minute focus check -->
-<div id="focusCheckModal" class="modal-backdrop hidden">
-  <div class="modal chalk-panel focus-check">
-    <span class="check-kicker">10-minute focus check</span>
-    <h2 id="focusQuestion" class="chalk-title">Pick 63.</h2>
-    <p class="modal-sub">A tiny check to make sure you're still at your desk.</p>
-    <div id="focusOptions" class="focus-options"></div>
-    <p id="focusFeedback" class="name-error"></p>
-  </div>
-</div>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="firebase-config.js"></script>
 <script src="app.js"></script>
 </body>
