@@ -1,759 +1,126 @@
-cat > /mnt/user-data/outputs/study-group-chat.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Study Group</title>
+<title>Study Together</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --chalkboard: #1E3B34;
-    --chalkboard-dark: #16302A;
-    --chalk: #F4F1E8;
-    --paper: #FBF8F1;
-    --paper-line: #E4DCC8;
-    --highlighter: #F2C14E;
-    --marker-coral: #E2694B;
-    --ink: #2B2B26;
-    --slate: #3F5C52;
-    --slate-light: #567268;
-    --error: #E2694B;
-  }
-  *{box-sizing:border-box;}
-  html,body{height:100%;}
-  body{
-    margin:0;
-    font-family:'Inter',sans-serif;
-    background:var(--chalkboard-dark);
-    color:var(--ink);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:100vh;
-  }
-  #app{
-    width:100%;
-    max-width:480px;
-    height:100vh;
-    max-height:820px;
-    background:var(--paper);
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
-    box-shadow:0 20px 60px rgba(0,0,0,0.45);
-    position:relative;
-  }
-  @media (min-width:520px){
-    #app{ border-radius:18px; margin:20px; height:calc(100vh - 40px); }
-  }
-
-  /* ---------- AUTH SCREEN ---------- */
-  .auth-wrap{
-    flex:1;
-    background:var(--chalkboard);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:28px;
-    position:relative;
-    overflow:hidden;
-  }
-  .auth-wrap::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    background-image: radial-gradient(rgba(244,241,232,0.05) 1px, transparent 1px);
-    background-size:14px 14px;
-    pointer-events:none;
-  }
-  .auth-card{
-    position:relative;
-    z-index:1;
-    width:100%;
-    max-width:340px;
-    text-align:center;
-  }
-  .auth-title{
-    font-family:'Kalam',cursive;
-    color:var(--chalk);
-    font-size:2.4rem;
-    font-weight:700;
-    margin:0;
-    letter-spacing:0.5px;
-  }
-  .squiggle{ margin:2px auto 6px; display:block; }
-  .auth-sub{
-    font-family:'Space Mono',monospace;
-    color:var(--highlighter);
-    font-size:0.72rem;
-    letter-spacing:2px;
-    text-transform:uppercase;
-    margin:0 0 28px;
-  }
-  .field{
-    text-align:left;
-    margin-bottom:14px;
-  }
-  .field label{
-    display:block;
-    font-family:'Space Mono',monospace;
-    font-size:0.68rem;
-    letter-spacing:1.5px;
-    text-transform:uppercase;
-    color:var(--slate-light);
-    background:var(--paper);
-    display:inline-block;
-    padding:0 2px;
-    margin-left:10px;
-    position:relative;
-    top:9px;
-  }
-  .field input{
-    width:100%;
-    padding:13px 14px;
-    border-radius:10px;
-    border:2px solid var(--slate);
-    background:var(--paper);
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    font-size:0.95rem;
-    outline:none;
-    transition:border-color .15s ease;
-  }
-  .field input:focus{ border-color:var(--highlighter); }
-  .auth-btn{
-    width:100%;
-    padding:13px;
-    margin-top:8px;
-    border:none;
-    border-radius:10px;
-    background:var(--highlighter);
-    color:var(--chalkboard-dark);
-    font-family:'Inter',sans-serif;
-    font-weight:700;
-    font-size:0.95rem;
-    cursor:pointer;
-    letter-spacing:0.3px;
-    transition:transform .1s ease, box-shadow .1s ease;
-  }
-  .auth-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(242,193,78,0.35); }
-  .auth-btn:disabled{ opacity:0.6; cursor:default; transform:none; box-shadow:none; }
-  .auth-hint{
-    margin-top:16px;
-    color:rgba(244,241,232,0.55);
-    font-size:0.78rem;
-    line-height:1.4;
-  }
-  .auth-error{
-    margin-top:14px;
-    color:var(--error);
-    background:rgba(226,105,75,0.12);
-    border:1px solid rgba(226,105,75,0.4);
-    padding:9px 12px;
-    border-radius:8px;
-    font-size:0.82rem;
-    display:none;
-  }
-
-  /* ---------- CHAT SCREEN ---------- */
-  .header{
-    background:var(--chalkboard);
-    padding:18px 20px 14px;
-    position:relative;
-    flex-shrink:0;
-  }
-  .header-top{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-  }
-  .header-title{
-    font-family:'Kalam',cursive;
-    color:var(--chalk);
-    font-size:1.7rem;
-    font-weight:700;
-    margin:0;
-  }
-  .leave-btn{
-    background:none;
-    border:1px solid rgba(244,241,232,0.35);
-    color:rgba(244,241,232,0.8);
-    font-family:'Space Mono',monospace;
-    font-size:0.65rem;
-    letter-spacing:1px;
-    text-transform:uppercase;
-    padding:6px 10px;
-    border-radius:7px;
-    cursor:pointer;
-    margin-top:4px;
-  }
-  .leave-btn:hover{ border-color:var(--highlighter); color:var(--highlighter); }
-  .online-row{
-    display:flex;
-    align-items:center;
-    gap:7px;
-    margin-top:4px;
-  }
-  .online-dot{
-    width:8px;
-    height:8px;
-    border-radius:50%;
-    background:#6FCF97;
-    box-shadow:0 0 0 0 rgba(111,207,151,0.6);
-    animation:pulse 1.8s infinite;
-  }
-  @keyframes pulse{
-    0%{ box-shadow:0 0 0 0 rgba(111,207,151,0.55); }
-    70%{ box-shadow:0 0 0 7px rgba(111,207,151,0); }
-    100%{ box-shadow:0 0 0 0 rgba(111,207,151,0); }
-  }
-  .online-text{
-    font-family:'Space Mono',monospace;
-    font-size:0.72rem;
-    letter-spacing:0.5px;
-    color:rgba(244,241,232,0.8);
-  }
-  .lock-note{
-    font-family:'Space Mono',monospace;
-    font-size:0.62rem;
-    color:rgba(244,241,232,0.45);
-    margin-top:5px;
-    letter-spacing:0.4px;
-  }
-
-  .messages{
-    flex:1;
-    overflow-y:auto;
-    padding:18px 16px;
-    background:
-      repeating-linear-gradient(var(--paper), var(--paper) 31px, var(--paper-line) 32px);
-  }
-  .msg-row{
-    display:flex;
-    margin-bottom:14px;
-  }
-  .msg-row.own{ justify-content:flex-end; }
-  .msg-row.other{ justify-content:flex-start; }
-  .msg-block{ max-width:78%; }
-  .msg-name{
-    font-family:'Space Mono',monospace;
-    font-size:0.68rem;
-    letter-spacing:0.5px;
-    margin-bottom:3px;
-    padding:0 4px;
-  }
-  .msg-row.other .msg-name{ color:var(--slate); text-align:left; }
-  .msg-row.own .msg-name{ color:#B5843A; text-align:right; }
-  .bubble{
-    padding:9px 13px;
-    border-radius:14px;
-    font-size:0.92rem;
-    line-height:1.4;
-    word-wrap:break-word;
-    white-space:pre-wrap;
-  }
-  .msg-row.other .bubble{
-    background:var(--slate);
-    color:var(--chalk);
-    border-bottom-left-radius:4px;
-  }
-  .msg-row.own .bubble{
-    background:var(--highlighter);
-    color:var(--chalkboard-dark);
-    border-bottom-right-radius:4px;
-  }
-  .msg-image{
-    max-width:220px;
-    max-height:280px;
-    display:block;
-    border-radius:14px;
-    cursor:zoom-in;
-    box-shadow:0 2px 10px rgba(0,0,0,0.25);
-  }
-  .msg-row.other .msg-image{ border-bottom-left-radius:4px; }
-  .msg-row.own .msg-image{ border-bottom-right-radius:4px; }
-  .msg-time{
-    font-family:'Space Mono',monospace;
-    font-size:0.62rem;
-    opacity:0.55;
-    margin-top:3px;
-    padding:0 4px;
-  }
-  .msg-row.own .msg-time{ text-align:right; }
-  .empty-state{
-    text-align:center;
-    color:var(--slate-light);
-    font-size:0.85rem;
-    margin-top:40px;
-    font-family:'Space Mono',monospace;
-    line-height:1.6;
-  }
-
-  .composer{
-    display:flex;
-    gap:8px;
-    padding:12px 14px;
-    background:var(--chalkboard);
-    flex-shrink:0;
-    align-items:center;
-  }
-  .composer input[type="text"]{
-    flex:1;
-    padding:12px 15px;
-    border-radius:22px;
-    border:none;
-    outline:none;
-    background:var(--paper);
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    font-size:0.92rem;
-  }
-  .icon-btn{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    border:none;
-    font-size:1.05rem;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    flex-shrink:0;
-    transition:transform .1s ease;
-  }
-  .icon-btn:hover{ transform:scale(1.06); }
-  .icon-btn:disabled{ opacity:0.5; cursor:default; transform:none; }
-  .attach-btn{ background:var(--slate); color:var(--chalk); }
-  .send-btn{ background:var(--highlighter); color:var(--chalkboard-dark); }
-
-  .toast{
-    position:absolute;
-    bottom:78px;
-    left:50%;
-    transform:translateX(-50%);
-    background:rgba(22,48,42,0.95);
-    color:var(--chalk);
-    padding:8px 16px;
-    border-radius:20px;
-    font-size:0.76rem;
-    font-family:'Space Mono',monospace;
-    z-index:60;
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .2s ease;
-    max-width:80%;
-    text-align:center;
-  }
-  .toast.show{ opacity:1; }
-
-  .lightbox{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.85);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    z-index:999;
-    padding:24px;
-    cursor:zoom-out;
-  }
-  .lightbox img{
-    max-width:100%;
-    max-height:100%;
-    border-radius:10px;
-  }
-
-  ::-webkit-scrollbar{ width:8px; }
-  ::-webkit-scrollbar-thumb{ background:var(--paper-line); border-radius:4px; }
-</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="app"></div>
 
-<script>
-(function(){
-  const USERS_KEY = "sg_users_v2";
-  const MESSAGES_KEY = "sg_messages_v2";
-  const PRESENCE_KEY = "sg_presence_v2";
-  const ONLINE_WINDOW_MS = 9000;
-  const HEARTBEAT_MS = 4000;
-  const POLL_MS = 2000;
-  const MAX_STORED_MESSAGES = 200;
-  const CRYPTO_PASSPHRASE = "study-group-chalkboard-room-key-v1";
+<!-- Chalk dust texture overlay -->
+<svg class="noise-layer" aria-hidden="true">
+  <filter id="chalkNoise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence>
+    <feColorMatrix type="saturate" values="0"></feColorMatrix>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#chalkNoise)"></rect>
+</svg>
 
-  let currentUser = null;
-  let pollTimer = null;
-  let heartbeatTimer = null;
-  let cryptoKey = null;
+<!-- Name entry modal -->
+<div id="nameModal" class="modal-backdrop">
+  <div class="modal chalk-panel">
+    <h1 class="chalk-title">Pull up a chair.</h1>
+    <p class="modal-sub">What should we call you on the board?</p>
+    <input id="nameInput" type="text" maxlength="24" placeholder="Your name" autocomplete="off">
+    <button id="nameSubmit" class="chalk-btn primary">Sit down &amp; study</button>
+    <p id="nameError" class="name-error"></p>
+  </div>
+</div>
 
-  const app = document.getElementById('app');
+<div id="app" class="app hidden">
 
-  // ---------- encryption helpers (AES-GCM, key derived from a fixed room passphrase) ----------
-  async function getCryptoKey(){
-    if(cryptoKey) return cryptoKey;
-    const enc = new TextEncoder();
-    const hash = await crypto.subtle.digest('SHA-256', enc.encode(CRYPTO_PASSPHRASE));
-    cryptoKey = await crypto.subtle.importKey('raw', hash, {name:'AES-GCM'}, false, ['encrypt','decrypt']);
-    return cryptoKey;
-  }
-  function bufToB64(buf){
-    const bytes = new Uint8Array(buf);
-    let bin = '';
-    for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
-    return btoa(bin);
-  }
-  function b64ToBuf(b64){
-    const bin = atob(b64);
-    const arr = new Uint8Array(bin.length);
-    for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
-    return arr.buffer;
-  }
-  async function encryptText(plainText){
-    const key = await getCryptoKey();
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const enc = new TextEncoder();
-    const cipherBuf = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(plainText));
-    return JSON.stringify({ iv: bufToB64(iv), data: bufToB64(cipherBuf) });
-  }
-  async function decryptText(payloadStr){
-    const key = await getCryptoKey();
-    const payload = JSON.parse(payloadStr);
-    const iv = new Uint8Array(b64ToBuf(payload.iv));
-    const cipherBuf = b64ToBuf(payload.data);
-    const plainBuf = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, cipherBuf);
-    return new TextDecoder().decode(plainBuf);
-  }
+  <header class="site-header">
+    <div class="header-inner">
+      <h1 class="chalk-title site-title">Study Together</h1>
+      <p class="site-tagline">Two desks, one board.</p>
+    </div>
+    <div class="whoami">
+      writing as <strong id="whoamiName">—</strong>
+      <button id="changeNameBtn" class="link-btn">not you?</button>
+    </div>
+  </header>
 
-  // ---------- storage helpers (encrypted at rest) ----------
-  async function safeGet(key){
-    try{
-      const res = await window.storage.get(key, true);
-      if(!res) return null;
-      const decrypted = await decryptText(res.value);
-      return JSON.parse(decrypted);
-    }catch(e){
-      return null;
-    }
-  }
-  async function safeSet(key, value){
-    try{
-      const encrypted = await encryptText(JSON.stringify(value));
-      const res = await window.storage.set(key, encrypted, true);
-      return !!res;
-    }catch(e){
-      console.error('storage set failed', e);
-      return false;
-    }
-  }
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="chat" role="tab" aria-selected="true">Chat</button>
+    <button class="tab-btn" data-tab="timer" role="tab" aria-selected="false">Timer</button>
+    <button class="tab-btn" data-tab="score" role="tab" aria-selected="false">Scoreboard</button>
+  </nav>
 
-  async function getUsers(){ return (await safeGet(USERS_KEY)) || {}; }
-  async function getMessages(){ return (await safeGet(MESSAGES_KEY)) || []; }
-  async function getPresence(){ return (await safeGet(PRESENCE_KEY)) || {}; }
+  <main class="board chalk-panel">
 
-  // ---------- toast ----------
-  let toastTimer = null;
-  function showToast(msg){
-    let toast = document.getElementById('toast');
-    if(!toast){
-      toast = document.createElement('div');
-      toast.id = 'toast';
-      toast.className = 'toast';
-      app.appendChild(toast);
-    }
-    toast.textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
-  }
+    <!-- CHAT TAB -->
+    <section id="tab-chat" class="tab-panel active">
+      <div id="chatMessages" class="chat-messages">
+        <p class="empty-note">No notes on the board yet. Say hello.</p>
+      </div>
+      <form id="chatForm" class="chat-form">
+        <input id="chatInput" type="text" placeholder="Write something…" maxlength="500" autocomplete="off">
+        <button type="submit" class="chalk-btn primary">Send</button>
+      </form>
+    </section>
 
-  // ---------- squiggle svg ----------
-  const squiggleSvg = '<svg class="squiggle" width="120" height="14" viewBox="0 0 120 14" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-    '<path d="M2 8 C 12 -2, 22 18, 32 8 C 42 -2, 52 18, 62 8 C 72 -2, 82 18, 92 8 C 100 1, 110 12, 118 6" stroke="#F2C14E" stroke-width="2.5" stroke-linecap="round"/>' +
-    '</svg>';
-
-  // ---------- AUTH SCREEN ----------
-  function renderAuth(errorMsg){
-    app.innerHTML = `
-      <div class="auth-wrap">
-        <div class="auth-card">
-          <h1 class="auth-title">Study Group</h1>
-          ${squiggleSvg}
-          <p class="auth-sub">sign in to join the session</p>
-          <div class="field">
-            <label>Username</label>
-            <input id="username" type="text" autocomplete="off" placeholder="e.g. priya_23" />
+    <!-- TIMER TAB -->
+    <section id="tab-timer" class="tab-panel">
+      <div class="timer-layout">
+        <div class="timer-ring-wrap">
+          <svg class="timer-ring" viewBox="0 0 220 220">
+            <circle class="ring-track" cx="110" cy="110" r="100"></circle>
+            <circle id="ringProgress" class="ring-progress" cx="110" cy="110" r="100"></circle>
+          </svg>
+          <div class="timer-readout">
+            <span id="timerDisplay">25:00</span>
+            <span id="timerState" class="timer-state">ready</span>
           </div>
-          <div class="field">
-            <label>Password</label>
-            <input id="password" type="password" placeholder="password" />
+        </div>
+
+        <div class="timer-controls">
+          <div class="preset-row">
+            <button class="chalk-btn preset" data-mins="25">25</button>
+            <button class="chalk-btn preset" data-mins="45">45</button>
+            <button class="chalk-btn preset" data-mins="60">60</button>
+            <div class="custom-preset">
+              <input id="customMins" type="number" min="1" max="180" placeholder="custom">
+              <button id="customSetBtn" class="chalk-btn">set</button>
+            </div>
           </div>
-          <button class="auth-btn" id="enterBtn">Enter the group</button>
-          <div class="auth-error" id="authError">${errorMsg || ''}</div>
-          <p class="auth-hint">First time? Pick a username &amp; password, it becomes yours.<br/>Already joined? Log back in with the same password.</p>
+          <div class="action-row">
+            <button id="startPauseBtn" class="chalk-btn primary big">Start</button>
+            <button id="resetBtn" class="chalk-btn big">Reset</button>
+          </div>
+          <p id="sessionNote" class="session-note"></p>
         </div>
       </div>
-    `;
-    if(errorMsg){ document.getElementById('authError').style.display = 'block'; }
 
-    const btn = document.getElementById('enterBtn');
-    const uInput = document.getElementById('username');
-    const pInput = document.getElementById('password');
-
-    async function attempt(){
-      const username = uInput.value.trim();
-      const password = pInput.value;
-      if(!username || !password){
-        renderAuth('Please enter both a username and password.');
-        return;
-      }
-      btn.disabled = true;
-      btn.textContent = 'Checking...';
-      const users = await getUsers();
-      if(Object.prototype.hasOwnProperty.call(users, username)){
-        if(users[username] !== password){
-          renderAuth('That username is taken and the password is wrong.');
-          return;
-        }
-      } else {
-        users[username] = password;
-        await safeSet(USERS_KEY, users);
-      }
-      currentUser = username;
-      await markOnline();
-      renderChat();
-      startLoops();
-    }
-
-    btn.addEventListener('click', attempt);
-    pInput.addEventListener('keydown', e => { if(e.key === 'Enter') attempt(); });
-    uInput.addEventListener('keydown', e => { if(e.key === 'Enter') pInput.focus(); });
-  }
-
-  // ---------- presence ----------
-  async function markOnline(){
-    if(!currentUser) return;
-    const presence = await getPresence();
-    presence[currentUser] = Date.now();
-    await safeSet(PRESENCE_KEY, presence);
-  }
-
-  function countOnline(presence){
-    const now = Date.now();
-    return Object.values(presence).filter(ts => now - ts < ONLINE_WINDOW_MS).length;
-  }
-
-  // ---------- image compression ----------
-  function compressImage(file, maxWidth, quality){
-    maxWidth = maxWidth || 640;
-    quality = quality || 0.62;
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          let w = img.width, h = img.height;
-          if(w > maxWidth){ h = Math.round(h * (maxWidth / w)); w = maxWidth; }
-          const canvas = document.createElement('canvas');
-          canvas.width = w; canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', quality));
-        };
-        img.onerror = () => reject(new Error('Could not read image'));
-        img.src = e.target.result;
-      };
-      reader.onerror = () => reject(new Error('Could not read file'));
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // ---------- chat screen ----------
-  function renderChat(){
-    app.innerHTML = `
-      <div class="header">
-        <div class="header-top">
-          <div>
-            <h1 class="header-title">Study Group</h1>
-          </div>
-          <button class="leave-btn" id="leaveBtn">Leave</button>
+      <div class="minutes-today">
+        <h2 class="section-label">Minutes on the board today</h2>
+        <div id="minutesList" class="minutes-list">
+          <p class="empty-note">Start a session to log your first minutes.</p>
         </div>
-        <div class="online-row">
-          <span class="online-dot"></span>
-          <span class="online-text" id="onlineText">checking...</span>
-        </div>
-        <div class="lock-note">🔒 messages &amp; images are encrypted before they're saved</div>
       </div>
-      <div class="messages" id="messages"></div>
-      <div class="composer">
-        <button class="icon-btn attach-btn" id="attachBtn" title="Send an image">📎</button>
-        <input type="file" id="imageInput" accept="image/*" style="display:none" />
-        <input id="msgInput" type="text" placeholder="Type a message..." autocomplete="off" />
-        <button class="icon-btn send-btn" id="sendBtn">➤</button>
+    </section>
+
+    <!-- SCOREBOARD TAB -->
+    <section id="tab-score" class="tab-panel">
+      <div id="scoreList" class="score-list">
+        <p class="empty-note">Scores will show up here once someone logs a question.</p>
       </div>
-    `;
+    </section>
 
-    document.getElementById('leaveBtn').addEventListener('click', leave);
-    const input = document.getElementById('msgInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const attachBtn = document.getElementById('attachBtn');
-    const imageInput = document.getElementById('imageInput');
+  </main>
 
-    sendBtn.addEventListener('click', sendMessage);
-    input.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
-    attachBtn.addEventListener('click', () => imageInput.click());
-    imageInput.addEventListener('change', handleImageSelect);
+  <footer class="site-footer">
+    <p>Stored on your shared board — <a href="https://github.com" target="_blank" rel="noopener">hosted from GitHub</a>.</p>
+  </footer>
 
-    const container = document.getElementById('messages');
-    container.addEventListener('click', (e) => {
-      if(e.target.classList.contains('msg-image')){
-        openLightbox(e.target.src);
-      }
-    });
+</div>
 
-    refreshMessages();
-    refreshPresence();
-  }
-
-  function openLightbox(src){
-    const overlay = document.createElement('div');
-    overlay.className = 'lightbox';
-    const img = document.createElement('img');
-    img.src = src;
-    overlay.appendChild(img);
-    overlay.addEventListener('click', () => overlay.remove());
-    document.body.appendChild(overlay);
-  }
-
-  function formatTime(ts){
-    const d = new Date(ts);
-    let h = d.getHours(); const m = d.getMinutes();
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12; if(h === 0) h = 12;
-    return h + ':' + String(m).padStart(2,'0') + ' ' + ampm;
-  }
-
-  function escapeHtml(str){
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  async function refreshMessages(){
-    const container = document.getElementById('messages');
-    if(!container) return;
-    const messages = await getMessages();
-    const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 40;
-
-    if(messages.length === 0){
-      container.innerHTML = '<div class="empty-state">No messages yet.<br/>Say hi to the study group 👋</div>';
-      return;
-    }
-
-    container.innerHTML = messages.map(m => {
-      const isOwn = m.username === currentUser;
-      const body = m.type === 'image'
-        ? `<img class="msg-image" src="${m.dataUrl}" alt="shared image" />`
-        : `<div class="bubble">${escapeHtml(m.text)}</div>`;
-      return `
-        <div class="msg-row ${isOwn ? 'own' : 'other'}">
-          <div class="msg-block">
-            <div class="msg-name">${escapeHtml(m.username)}</div>
-            ${body}
-            <div class="msg-time">${formatTime(m.ts)}</div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    if(wasAtBottom || messages[messages.length - 1].username === currentUser){
-      container.scrollTop = container.scrollHeight;
-    }
-  }
-
-  async function refreshPresence(){
-    const el = document.getElementById('onlineText');
-    if(!el) return;
-    const presence = await getPresence();
-    const count = countOnline(presence);
-    el.textContent = count === 1 ? '1 person online' : (count + ' people online');
-  }
-
-  async function pushMessage(msgObj){
-    const messages = await getMessages();
-    messages.push(msgObj);
-    const trimmed = messages.length > MAX_STORED_MESSAGES
-      ? messages.slice(messages.length - MAX_STORED_MESSAGES)
-      : messages;
-    const ok = await safeSet(MESSAGES_KEY, trimmed);
-    if(!ok){ showToast("Couldn't save that message, please try again."); }
-    await refreshMessages();
-  }
-
-  async function sendMessage(){
-    const input = document.getElementById('msgInput');
-    const text = input.value.trim();
-    if(!text || !currentUser) return;
-    input.value = '';
-    await pushMessage({ username: currentUser, type: 'text', text: text, ts: Date.now() });
-  }
-
-  async function handleImageSelect(e){
-    const file = e.target.files[0];
-    e.target.value = '';
-    if(!file || !currentUser) return;
-    if(!file.type.startsWith('image/')){
-      showToast('Please choose an image file.');
-      return;
-    }
-    showToast('Sending image...');
-    try{
-      const dataUrl = await compressImage(file);
-      await pushMessage({ username: currentUser, type: 'image', dataUrl: dataUrl, ts: Date.now() });
-    }catch(err){
-      showToast('Could not send that image.');
-    }
-  }
-
-  function startLoops(){
-    stopLoops();
-    heartbeatTimer = setInterval(markOnline, HEARTBEAT_MS);
-    pollTimer = setInterval(async () => {
-      await refreshMessages();
-      await refreshPresence();
-    }, POLL_MS);
-  }
-
-  function stopLoops(){
-    if(pollTimer) clearInterval(pollTimer);
-    if(heartbeatTimer) clearInterval(heartbeatTimer);
-    pollTimer = null;
-    heartbeatTimer = null;
-  }
-
-  async function leave(){
-    stopLoops();
-    if(currentUser){
-      const presence = await getPresence();
-      delete presence[currentUser];
-      await safeSet(PRESENCE_KEY, presence);
-    }
-    currentUser = null;
-    renderAuth();
-  }
-
-  window.addEventListener('beforeunload', () => {
-    if(currentUser){
-      getPresence().then(p => { delete p[currentUser]; safeSet(PRESENCE_KEY, p); });
-    }
-  });
-
-  renderAuth();
-})();
-</script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
-HTMLEOF
-echo "done: $(wc -l < /mnt/user-data/outputs/study-group-chat.html) lines"
-
