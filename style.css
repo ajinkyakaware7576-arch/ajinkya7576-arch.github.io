@@ -424,57 +424,95 @@ button:focus-visible, input:focus-visible {
 
 .flip-card {
   position: relative;
-  min-width: 118px;
-  perspective: 400px;
-}
-
-.flip-card-face,
-.flip-card-leaf {
-  font-family: var(--display-font);
-  font-weight: 700;
-  font-size: 4.2rem;
-  line-height: 1;
-  color: #f4f4f8;
+  width: 118px;
+  height: 132px;
+  border-radius: 12px;
   background: linear-gradient(180deg, #1c1e27 0%, #0a0b0f 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  padding: 18px 22px;
-  text-align: center;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.06) inset,
     0 14px 30px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  perspective: 500px;
 }
 
-.flip-card-face { position: relative; display: block; }
+.card-half {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+}
 
-.flip-card-face::after {
-  content: "";
+.card-top { top: 0; }
+.card-bottom { bottom: 0; }
+
+.card-half .glyph {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 200%;
+}
+
+.card-top .glyph { top: 0; }
+.card-bottom .glyph { bottom: 0; }
+
+.glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display-font);
+  font-weight: 700;
+  font-size: 4.2rem;
+  color: #f4f4f8;
+}
+
+.flap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 50%;
+  transform-style: preserve-3d;
+  transform-origin: bottom;
+  transform: rotateX(0deg);
+  z-index: 3;
+}
+
+.flap.flipping { animation: flapFold 0.5s ease-in forwards; }
+
+@keyframes flapFold {
+  0% { transform: rotateX(0deg); }
+  100% { transform: rotateX(-180deg); }
+}
+
+.flap-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
+
+.flap-front { transform: rotateX(0deg); }
+.flap-back { transform: rotateX(180deg); }
+
+.flap-face .glyph {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 200%;
+}
+
+.hinge-line {
   position: absolute;
   left: 0;
   right: 0;
   top: 50%;
   height: 1px;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.flip-card-leaf {
-  position: absolute;
-  inset: 0;
-  transform-origin: top center;
-  backface-visibility: hidden;
-  opacity: 0;
-  padding: 18px 22px;
-  z-index: 2;
-}
-
-.flip-card-leaf.flipping {
-  animation: pageFlip 0.5s ease-in forwards;
-}
-
-@keyframes pageFlip {
-  0% { transform: rotateX(0deg); opacity: 1; }
-  70% { opacity: 1; }
-  100% { transform: rotateX(-180deg); opacity: 0; }
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 4;
+  pointer-events: none;
 }
 
 .flip-unit label {
