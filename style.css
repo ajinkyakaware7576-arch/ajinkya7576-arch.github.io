@@ -320,33 +320,15 @@ button:focus-visible, input:focus-visible {
 
 .msg-menu {
   position: absolute;
-  top: 3px;
+  top: 2px;
   right: 4px;
-  z-index: 6;
-}
-
-.msg-menu-btn {
-  width: 24px;
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.msg-text {
-  padding-right: 20px;
-  overflow-wrap: anywhere;
-}
-
-.msg-actions {
-  display: none;
 }
 
 .msg-menu-btn {
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1;
   padding: 2px 5px;
   border-radius: 6px;
@@ -373,7 +355,7 @@ button:focus-visible, input:focus-visible {
   border-radius: 8px;
   overflow: hidden;
   z-index: 5;
-  min-width: 92px;
+  min-width: 90px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
@@ -443,8 +425,7 @@ button:focus-visible, input:focus-visible {
 .flip-card {
   position: relative;
   min-width: 118px;
-  perspective: 700px;
-  transform-style: preserve-3d;
+  perspective: 400px;
 }
 
 .flip-card-face,
@@ -480,7 +461,6 @@ button:focus-visible, input:focus-visible {
   position: absolute;
   inset: 0;
   transform-origin: top center;
-  transform-style: preserve-3d;
   backface-visibility: hidden;
   opacity: 0;
   padding: 18px 22px;
@@ -755,9 +735,6 @@ button:focus-visible, input:focus-visible {
 
 /* ---------- Responsive ---------- */
 @media (max-width: 520px) {
-  .msg { max-width: 86%; }
-  .msg-menu-btn { opacity: 0.6; }
-  .msg-menu-dropdown { min-width: 100px; }
   .site-title { font-size: 1.5rem; }
   .tab-btn { padding: 9px 12px 10px; font-size: 0.9rem; }
   .board { padding: 16px; }
