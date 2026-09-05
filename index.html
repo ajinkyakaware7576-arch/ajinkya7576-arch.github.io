@@ -30,14 +30,12 @@
   </div>
 </div>
 
-<!-- 10-minute focus check modal -->
+<!-- 20-minute focus check -->
 <div id="checkModal" class="modal-backdrop hidden">
   <div class="modal panel">
-    <h1 class="title-text">Quick check-in</h1>
-    <p class="modal-sub">Answer this to keep the timer running.</p>
-    <p id="checkPrompt" class="check-prompt">7 × 9 = ?</p>
-    <div id="checkOptions" class="check-options"></div>
-    <p id="checkFeedback" class="error-text"></p>
+    <h1 class="title-text">Still there?</h1>
+    <p class="modal-sub">Tap the button 5 times in the next <span id="checkCountdown">60</span>s, or the session will end and today's time will be saved as-is.</p>
+    <button id="tapBtn" class="btn primary big tap-btn">Tap (<span id="tapCount">0</span>/5)</button>
   </div>
 </div>
 
@@ -80,33 +78,26 @@
 
     <!-- TIMER TAB -->
     <section id="tab-timer" class="tab-panel">
-      <div class="timer-layout">
-        <div class="timer-ring-wrap">
-          <svg class="timer-ring" viewBox="0 0 220 220">
-            <circle class="ring-track" cx="110" cy="110" r="100"></circle>
-            <circle id="ringProgress" class="ring-progress" cx="110" cy="110" r="100"></circle>
-          </svg>
-          <div class="timer-readout">
-            <span id="timerDisplay">00:00</span>
-            <span id="timerState" class="timer-state">ready</span>
-          </div>
-        </div>
+      <p class="timer-warning">Every 20 minutes you'll be asked to tap the screen 5 times within a minute to confirm you're still studying — miss it and the session ends automatically.</p>
 
-        <div class="timer-controls">
-          <p class="ring-hint">The ring fills up as your next check-in approaches (every 10 min).</p>
-          <div class="action-row">
-            <button id="startPauseBtn" class="btn primary big">Start</button>
-            <button id="stopBtn" class="btn big">Stop</button>
-          </div>
-          <p id="sessionNote" class="session-note"></p>
-        </div>
+      <div class="flipclock">
+        <div class="flip-unit"><span id="fcHours">00</span><label>hrs</label></div>
+        <span class="flip-colon">:</span>
+        <div class="flip-unit"><span id="fcMinutes">00</span><label>min</label></div>
+        <span class="flip-colon">:</span>
+        <div class="flip-unit"><span id="fcSeconds">00</span><label>sec</label></div>
       </div>
 
-      <div class="minutes-today">
-        <h2 class="section-label">Today's progress</h2>
-        <div id="minutesList" class="minutes-list">
-          <p class="empty-note">Start a session to log your first minutes.</p>
-        </div>
+      <p id="timerState" class="timer-state center">ready</p>
+
+      <div class="action-row center">
+        <button id="startStopBtn" class="btn primary big">Start</button>
+      </div>
+      <p id="sessionNote" class="session-note center"></p>
+
+      <div class="friend-clock" id="friendClock">
+        <p class="friend-clock-label" id="friendClockLabel">Waiting for your study partner…</p>
+        <div class="friend-clock-time" id="friendClockTime">00:00:00</div>
       </div>
     </section>
 
@@ -121,36 +112,25 @@
     <section id="tab-analysis" class="tab-panel">
       <div class="chart-legend" id="userLegend"></div>
 
-      <div class="analysis-section" id="section-time">
-        <h2 class="section-label">Time studied (minutes)</h2>
-        <p class="filter-label">Week</p>
-        <div class="pill-row" data-pills="week"></div>
-        <p class="filter-label">Month</p>
-        <div class="pill-row" data-pills="month"></div>
-        <div class="daychart">
-          <div class="daychart-yaxis"></div>
-          <div class="daychart-plot">
-            <div class="daychart-gridlines"></div>
-            <div class="daychart-bars"></div>
-          </div>
-        </div>
-        <div class="daychart-xaxis"></div>
+      <div class="toggle-row" id="metricToggle">
+        <button class="pill active" data-metric="time">Time studied</button>
+        <button class="pill" data-metric="questions">Questions solved</button>
       </div>
 
-      <div class="analysis-section" id="section-questions">
-        <h2 class="section-label">Questions solved</h2>
+      <div class="analysis-section" id="section-chart">
         <p class="filter-label">Week</p>
         <div class="pill-row" data-pills="week"></div>
         <p class="filter-label">Month</p>
-        <div class="pill-row" data-pills="month"></div>
+        <div class="pill-row month-pill-row" data-pills="month"></div>
         <div class="daychart">
           <div class="daychart-yaxis"></div>
-          <div class="daychart-plot">
-            <div class="daychart-gridlines"></div>
-            <div class="daychart-bars"></div>
+          <div class="daychart-scroll">
+            <div class="daychart-inner">
+              <div class="daychart-gridlines"></div>
+              <div class="daychart-bars"></div>
+            </div>
           </div>
         </div>
-        <div class="daychart-xaxis"></div>
       </div>
     </section>
 
