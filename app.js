@@ -102,6 +102,12 @@ document.getElementById("changeNameBtn").addEventListener("click", () => {
 if (myName) { showApp(); } else { nameInput.focus(); }
 
 /* ---------- tabs ---------- */
+let currentTab = "chat";
+const chatBadge = document.getElementById("chatBadge");
+
+function hideChatBadge() { chatBadge.classList.add("hidden"); }
+function showChatBadge() { chatBadge.classList.remove("hidden"); }
+
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tab-btn").forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-selected", "false"); });
@@ -109,7 +115,12 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.classList.add("active");
     btn.setAttribute("aria-selected", "true");
     document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
-    if (btn.dataset.tab === "analysis") loadAnalysis();
+    currentTab = btn.dataset.tab;
+    if (currentTab === "chat") {
+      hideChatBadge();
+      if (latestMessages.length) lastSeenMessageTs = latestMessages[latestMessages.length - 1].ts;
+    }
+    if (currentTab === "analysis") loadAnalysis();
   });
 });
 
@@ -119,6 +130,13 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
 let replyDraft = null; // { key, name, text }
 let editingKey = null;
 let latestMessages = [];
+let lastSeenMessageTs = 0;
+let openMenuKey = null;
+
+// close any open message menu when clicking elsewhere
+document.addEventListener("click", () => {
+  if (openMenuKey !== null) { openMenuKey = null; document.querySelectorAll(".msg-menu-dropdown.open").forEach((d) => d.classList.remove("open")); }
+});
 
 function initChat() {
   const messagesEl = document.getElementById("chatMessages");
@@ -169,7 +187,14 @@ function initChat() {
           </div>`;
       } else {
         inner += `<div class="msg-text">${escapeHtml(m.text)}</div>`;
-        inner += `<div class="msg-actions"><button class="reply-btn">reply</button>${isMine ? '<button class="edit-btn">edit</button>' : ""}</div>`;
+        inner += `
+          <div class="msg-menu">
+            <button class="msg-menu-btn" aria-label="message options">⋯</button>
+            <div class="msg-menu-dropdown${openMenuKey === m.key ? " open" : ""}">
+              <button class="menu-reply">Reply</button>
+              ${isMine ? '<button class="menu-edit">Edit</button>' : ""}
+            </div>
+          </div>`;
       }
 
       div.innerHTML = inner;
@@ -186,13 +211,30 @@ function initChat() {
           if (e.key === "Escape") { editingKey = null; renderMessages(); }
         });
       } else {
-        div.querySelector(".reply-btn").addEventListener("click", () => {
+        const menuBtn = div.querySelector(".msg-menu-btn");
+        const dropdown = div.querySelector(".msg-menu-dropdown");
+        menuBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const willOpen = openMenuKey !== m.key;
+          document.querySelectorAll(".msg-menu-dropdown.open").forEach((d) => d.classList.remove("open"));
+          openMenuKey = willOpen ? m.key : null;
+          dropdown.classList.toggle("open", willOpen);
+        });
+        dropdown.querySelector(".menu-reply").addEventListener("click", (e) => {
+          e.stopPropagation();
+          openMenuKey = null;
+          dropdown.classList.remove("open");
           replyDraft = { key: m.key, name: m.name, text: m.text.slice(0, 60) };
           renderReplyBanner();
           input.focus();
         });
         if (isMine) {
-          div.querySelector(".edit-btn").addEventListener("click", () => { editingKey = m.key; renderMessages(); });
+          dropdown.querySelector(".menu-edit").addEventListener("click", (e) => {
+            e.stopPropagation();
+            openMenuKey = null;
+            editingKey = m.key;
+            renderMessages();
+          });
         }
       }
     });
@@ -205,6 +247,15 @@ function initChat() {
     snapshot.forEach((child) => { entries.push({ key: child.key, ...child.val() }); });
     entries.sort((a, b) => a.ts - b.ts);
     latestMessages = entries;
+
+    const newest = entries.length ? entries[entries.length - 1] : null;
+    if (currentTab === "chat") {
+      if (newest) lastSeenMessageTs = newest.ts;
+      hideChatBadge();
+    } else if (newest && newest.ts > lastSeenMessageTs && newest.name !== myName) {
+      showChatBadge();
+    }
+
     renderMessages();
   });
 
@@ -249,6 +300,9 @@ let friendTickHandle = null;
 const fcHours = document.getElementById("fcHours");
 const fcMinutes = document.getElementById("fcMinutes");
 const fcSeconds = document.getElementById("fcSeconds");
+const fcHoursLeaf = document.getElementById("fcHoursLeaf");
+const fcMinutesLeaf = document.getElementById("fcMinutesLeaf");
+const fcSecondsLeaf = document.getElementById("fcSecondsLeaf");
 const timerStateEl = document.getElementById("timerState");
 const startStopBtn = document.getElementById("startStopBtn");
 const sessionNote = document.getElementById("sessionNote");
@@ -257,13 +311,14 @@ const friendClockTime = document.getElementById("friendClockTime");
 
 function formatUnit(n) { return String(Math.max(0, Math.floor(n))).padStart(2, "0"); }
 
-function renderClockInto(totalSec, hEl, mEl, sEl) {
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = Math.floor(totalSec % 60);
-  hEl.textContent = formatUnit(h);
-  mEl.textContent = formatUnit(m);
-  sEl.textContent = formatUnit(s);
+function flipUnitTo(faceEl, leafEl, newValue) {
+  const old = faceEl.textContent;
+  if (old === newValue) return;
+  leafEl.textContent = old;          // the outgoing digit, about to fold away
+  faceEl.textContent = newValue;     // the new digit is already underneath
+  leafEl.classList.remove("flipping");
+  void leafEl.offsetWidth;           // force reflow so the animation restarts
+  leafEl.classList.add("flipping");
 }
 
 function computeMyDisplaySeconds() {
@@ -272,7 +327,13 @@ function computeMyDisplaySeconds() {
 }
 
 function renderMyClock() {
-  renderClockInto(computeMyDisplaySeconds(), fcHours, fcMinutes, fcSeconds);
+  const totalSec = computeMyDisplaySeconds();
+  const h = formatUnit(Math.floor(totalSec / 3600));
+  const m = formatUnit(Math.floor((totalSec % 3600) / 60));
+  const s = formatUnit(Math.floor(totalSec % 60));
+  flipUnitTo(fcHours, fcHoursLeaf, h);
+  flipUnitTo(fcMinutes, fcMinutesLeaf, m);
+  flipUnitTo(fcSeconds, fcSecondsLeaf, s);
 }
 
 function persistMyState(isRunning, seconds) {
