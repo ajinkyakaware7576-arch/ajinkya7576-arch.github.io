@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Together — Cleanup Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0b0d12; --panel:#15171f; --line:rgba(255,255,255,0.09); --text:#e9e9f0; --dim:#8d8fa3; --danger:#f2607a; --accent:#6366f1; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Inter",sans-serif; padding:28px 16px 60px; }
+  .wrap { max-width:640px; margin:0 auto; }
+  h1 { font-family:"Space Grotesk",sans-serif; font-size:1.5rem; }
+  p.sub { color:var(--dim); font-size:0.9rem; line-height:1.5; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; margin-top:20px; }
+  .user-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .user-row:last-child { border-bottom:none; }
+  .user-name { font-weight:600; }
+  .user-meta { color:var(--dim); font-size:0.8rem; }
+  button { font-family:"Inter",sans-serif; font-weight:600; font-size:0.85rem; padding:8px 14px; border-radius:8px; cursor:pointer; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); }
+  button:hover { background:rgba(255,255,255,0.1); }
+  button.danger { border-color:var(--danger); color:var(--danger); background:transparent; }
+  button.danger:hover { background:rgba(242,96,122,0.12); }
+  #status { margin-top:16px; font-size:0.85rem; color:var(--dim); white-space:pre-wrap; }
+  .empty { color:var(--dim); font-style:italic; font-size:0.9rem; }
+  label { display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--dim); margin-top:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cleanup tool</h1>
+  <p class="sub">
+    This scans your shared database for every name that has ever shown up in the timer or scoreboard data, so you can delete one that was created by accident. This does <strong>not</strong> touch chat messages unless you tick the box below.
+    Delete this page (or just don't link to it) once you're done — it isn't part of the main site.
+  </p>
+
+  <div class="panel">
+    <div id="userList">Loading…</div>
+  </div>
+
+  <div id="status"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const userListEl = document.getElementById("userList");
+const statusEl = document.getElementById("status");
+
+async function findAllUsers() {
+  const [timerSnap, scoresSnap] = await Promise.all([
+    db.ref("dailyTimer").once("value"),
+    db.ref("scores").once("value"),
+  ]);
+  const counts = {}; // key -> { days, subjects, totalSeconds }
+  const timerData = timerSnap.val() || {};
+  Object.entries(timerData).forEach(([day, users]) => {
+    Object.entries(users || {}).forEach(([key, entry]) => {
+      counts[key] = counts[key] || { days: 0, totalSeconds: 0, subjectDays: 0 };
+      counts[key].days += 1;
+      counts[key].totalSeconds += (entry.totalSeconds || 0);
+    });
+  });
+  const scoresData = scoresSnap.val() || {};
+  Object.entries(scoresData).forEach(([day, subjects]) => {
+    Object.entries(subjects || {}).forEach(([subject, users]) => {
+      Object.keys(users || {}).forEach((key) => {
+        counts[key] = counts[key] || { days: 0, totalSeconds: 0, subjectDays: 0 };
+        counts[key].subjectDays += 1;
+      });
+    });
+  });
+  return counts;
+}
+
+function formatMins(sec) {
+  const m = Math.round(sec / 60);
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  return h > 0 ? `${h}h ${mm}m` : `${mm}m`;
+}
+
+async function render() {
+  const users = await findAllUsers();
+  const keys = Object.keys(users);
+  if (keys.length === 0) {
+    userListEl.innerHTML = '<p class="empty">No user data found yet.</p>';
+    return;
+  }
+  userListEl.innerHTML = "";
+  keys.forEach((key) => {
+    const info = users[key];
+    const row = document.createElement("div");
+    row.className = "user-row";
+    row.innerHTML = `
+      <div>
+        <div class="user-name">${key}</div>
+        <div class="user-meta">${formatMins(info.totalSeconds)} studied · appears on ${info.days} day(s), ${info.subjectDays} score entr${info.subjectDays === 1 ? "y" : "ies"}</div>
+      </div>
+      <button class="danger" data-key="${key}">Delete this user</button>
+    `;
+    userListEl.appendChild(row);
+  });
+
+  userListEl.querySelectorAll("button.danger").forEach((btn) => {
+    btn.addEventListener("click", () => deleteUser(btn.dataset.key));
+  });
+}
+
+async function deleteUser(key) {
+  const confirmed = confirm(`Delete all timer and scoreboard data for "${key}"? This can't be undone. Chat messages are not affected.`);
+  if (!confirmed) return;
+
+  statusEl.textContent = `Deleting "${key}"…`;
+
+  const [timerSnap, scoresSnap] = await Promise.all([
+    db.ref("dailyTimer").once("value"),
+    db.ref("scores").once("value"),
+  ]);
+
+  const updates = {};
+  const timerData = timerSnap.val() || {};
+  Object.keys(timerData).forEach((day) => {
+    if (timerData[day] && key in timerData[day]) updates[`dailyTimer/${day}/${key}`] = null;
+  });
+  const scoresData = scoresSnap.val() || {};
+  Object.entries(scoresData).forEach(([day, subjects]) => {
+    Object.keys(subjects || {}).forEach((subject) => {
+      if (subjects[subject] && key in subjects[subject]) updates[`scores/${day}/${subject}/${key}`] = null;
+    });
+  });
+
+  await db.ref().update(updates);
+  statusEl.textContent = `Done — removed ${Object.keys(updates).length} entries for "${key}". Reloading…`;
+  setTimeout(() => location.reload(), 1200);
+}
+
+render();
+</script>
+</body>
+</html>
