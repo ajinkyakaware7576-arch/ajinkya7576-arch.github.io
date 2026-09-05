@@ -63,13 +63,19 @@ function showApp() {
   myKey = sanitizeKey(myName);
   if (!appStarted) {
     appStarted = true;
-    initChat();
-    initScoreboard();
-    initTimerDayWatch();
+    try { initChat(); } catch (err) { console.error("Chat init failed:", err); }
+    try { initScoreboard(); } catch (err) { console.error("Scoreboard init failed:", err); }
+    try { initTimerDayWatch(); } catch (err) { console.error("Timer init failed:", err); }
   } else {
-    // name changed after app already running — re-bind day-dependent listeners
-    initScoreboard();
-    refreshMinutesToday();
+    // name changed after app already running — reload everything under the new identity
+    try { initScoreboard(); } catch (err) { console.error("Scoreboard init failed:", err); }
+    try {
+      if (tickHandle) { clearInterval(tickHandle); tickHandle = null; }
+      running = false;
+      baselineSeconds = 0;
+      runStartAt = null;
+      initTimerDayWatch();
+    } catch (err) { console.error("Timer reload failed:", err); }
   }
 }
 
@@ -218,176 +224,234 @@ function initChat() {
 }
 
 /* ==========================================================
-   TIMER — stopwatch with 10-minute focus check-ins
+   TIMER — persistent daily total (not a per-session stopwatch).
+   The clock shows today's accumulated study time; Start resumes
+   counting from wherever it's frozen, Stop freezes it again.
+   Every 20 minutes of active running, a tap-5-times check-in
+   confirms someone's still there; missing it ends the session.
    ========================================================== */
-const CIRCUMFERENCE = 2 * Math.PI * 100;
-const CHECK_INTERVAL_SECONDS = 600; // 10 minutes
+const CHECK_INTERVAL_SECONDS = 1200; // 20 minutes
+const CHECK_WINDOW_SECONDS = 60;
+const TAPS_REQUIRED = 5;
 
 let running = false;
-let elapsedSeconds = 0;      // this session, for display
-let secondsSinceCredit = 0;  // toward next 1-minute DB credit
-let secondsSinceCheck = 0;   // toward next check-in
+let baselineSeconds = 0;   // frozen accumulated seconds for today
+let runStartAt = null;     // client timestamp (ms) when the current run began
 let tickHandle = null;
+let secondsSinceCheck = 0; // toward next 20-min check-in
 let checkActive = false;
+let checkCountdownHandle = null;
+let tapCount = 0;
 let currentDay = dayKey();
+let friendKey = null;
+let friendTickHandle = null;
 
-const timerDisplay = document.getElementById("timerDisplay");
+const fcHours = document.getElementById("fcHours");
+const fcMinutes = document.getElementById("fcMinutes");
+const fcSeconds = document.getElementById("fcSeconds");
 const timerStateEl = document.getElementById("timerState");
-const ringProgress = document.getElementById("ringProgress");
-const startPauseBtn = document.getElementById("startPauseBtn");
-const stopBtn = document.getElementById("stopBtn");
+const startStopBtn = document.getElementById("startStopBtn");
 const sessionNote = document.getElementById("sessionNote");
+const friendClockLabel = document.getElementById("friendClockLabel");
+const friendClockTime = document.getElementById("friendClockTime");
 
-ringProgress.style.strokeDasharray = CIRCUMFERENCE;
+function formatUnit(n) { return String(Math.max(0, Math.floor(n))).padStart(2, "0"); }
 
-function formatElapsed(sec) {
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60).toString().padStart(2, "0");
-  const s = Math.floor(sec % 60).toString().padStart(2, "0");
-  return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+function renderClockInto(totalSec, hEl, mEl, sEl) {
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = Math.floor(totalSec % 60);
+  hEl.textContent = formatUnit(h);
+  mEl.textContent = formatUnit(m);
+  sEl.textContent = formatUnit(s);
 }
 
-function renderTimer() {
-  timerDisplay.textContent = formatElapsed(elapsedSeconds);
-  const fraction = secondsSinceCheck / CHECK_INTERVAL_SECONDS;
-  ringProgress.style.strokeDashoffset = CIRCUMFERENCE * (1 - Math.min(fraction, 1));
-  ringProgress.classList.toggle("due", fraction > 0.85);
+function computeMyDisplaySeconds() {
+  if (running && runStartAt) return baselineSeconds + (Date.now() - runStartAt) / 1000;
+  return baselineSeconds;
 }
 
-function creditMinute() {
-  const key = `studyMinutes/${dayKey()}/${myKey}`;
-  db.ref(key).transaction((current) => (current || 0) + 1);
+function renderMyClock() {
+  renderClockInto(computeMyDisplaySeconds(), fcHours, fcMinutes, fcSeconds);
+}
+
+function persistMyState(isRunning, seconds) {
+  const day = dayKey();
+  db.ref(`dailyTimer/${day}/${myKey}`).set({
+    totalSeconds: Math.round(seconds),
+    running: isRunning,
+    startedAt: isRunning ? Date.now() : null,
+  });
 }
 
 function tick() {
   if (checkActive) return;
-  elapsedSeconds++;
-  secondsSinceCredit++;
   secondsSinceCheck++;
+  renderMyClock();
 
-  if (secondsSinceCredit >= 60) {
-    secondsSinceCredit -= 60;
-    creditMinute();
-  }
   if (secondsSinceCheck >= CHECK_INTERVAL_SECONDS) {
     secondsSinceCheck = 0;
     triggerCheck();
   }
-  renderTimer();
 }
+
+// separate, simpler once-a-minute persistence heartbeat
+setInterval(() => {
+  if (running && !checkActive && myKey) {
+    baselineSeconds = computeMyDisplaySeconds();
+    runStartAt = Date.now();
+    persistMyState(true, baselineSeconds);
+  }
+}, 60000);
 
 function startTimer() {
   running = true;
-  startPauseBtn.textContent = "Pause";
+  runStartAt = Date.now();
+  startStopBtn.textContent = "Stop";
   timerStateEl.textContent = "studying";
   sessionNote.textContent = "";
+  persistMyState(true, baselineSeconds);
   if (!tickHandle) tickHandle = setInterval(tick, 1000);
 }
 
-function pauseTimer() {
+function stopTimer(note) {
+  baselineSeconds = computeMyDisplaySeconds();
   running = false;
-  startPauseBtn.textContent = "Resume";
-  timerStateEl.textContent = "paused";
-}
-
-function stopTimer() {
-  running = false;
+  runStartAt = null;
   clearInterval(tickHandle);
   tickHandle = null;
-  elapsedSeconds = 0;
-  secondsSinceCredit = 0;
   secondsSinceCheck = 0;
-  startPauseBtn.textContent = "Start";
+  startStopBtn.textContent = "Start";
   timerStateEl.textContent = "ready";
-  sessionNote.textContent = "Session ended — logged to today's progress.";
-  renderTimer();
+  sessionNote.textContent = note || "";
+  persistMyState(false, baselineSeconds);
+  renderMyClock();
 }
 
-startPauseBtn.addEventListener("click", () => {
-  if (running) pauseTimer(); else startTimer();
+startStopBtn.addEventListener("click", () => {
+  if (running) stopTimer("Session ended — saved to today's total."); else startTimer();
 });
 
-stopBtn.addEventListener("click", stopTimer);
-
-/* ---- 10-minute check-in ---- */
+/* ---- 20-minute tap check-in ---- */
 const checkModal = document.getElementById("checkModal");
-const checkPrompt = document.getElementById("checkPrompt");
-const checkOptions = document.getElementById("checkOptions");
-const checkFeedback = document.getElementById("checkFeedback");
-
-function generateCheckQuestion() {
-  const a = Math.floor(Math.random() * 10) + 2; // 2-11
-  const b = Math.floor(Math.random() * 10) + 2;
-  const correct = a * b;
-  const options = new Set([correct]);
-  while (options.size < 4) {
-    const offset = Math.floor(Math.random() * 24) - 12;
-    const val = correct + offset;
-    if (val > 0 && val !== correct) options.add(val);
-  }
-  const opts = Array.from(options).sort(() => Math.random() - 0.5);
-  return { prompt: `${a} × ${b} = ?`, correct, opts };
-}
-
-function renderCheckQuestion(q, isRetry) {
-  checkPrompt.textContent = q.prompt;
-  checkFeedback.textContent = isRetry ? "Not quite — here's another one." : "";
-  checkOptions.innerHTML = "";
-  q.opts.forEach((val) => {
-    const btn = document.createElement("button");
-    btn.className = "btn";
-    btn.textContent = val;
-    btn.addEventListener("click", () => {
-      if (val === q.correct) {
-        checkModal.classList.add("hidden");
-        checkActive = false;
-        timerStateEl.textContent = running ? "studying" : "paused";
-      } else {
-        renderCheckQuestion(generateCheckQuestion(), true);
-      }
-    });
-    checkOptions.appendChild(btn);
-  });
-}
+const checkCountdownEl = document.getElementById("checkCountdown");
+const tapBtn = document.getElementById("tapBtn");
+const tapCountEl = document.getElementById("tapCount");
 
 function triggerCheck() {
   checkActive = true;
-  timerStateEl.textContent = "check-in!";
-  renderCheckQuestion(generateCheckQuestion(), false);
+  // freeze the visible baseline right now; the check-in window itself doesn't count
+  baselineSeconds = computeMyDisplaySeconds();
+  runStartAt = null;
+  tapCount = 0;
+  tapCountEl.textContent = "0";
+  timerStateEl.textContent = "confirm you're here!";
+
+  let remaining = CHECK_WINDOW_SECONDS;
+  checkCountdownEl.textContent = remaining;
   checkModal.classList.remove("hidden");
+
+  checkCountdownHandle = setInterval(() => {
+    remaining -= 1;
+    checkCountdownEl.textContent = Math.max(remaining, 0);
+    if (remaining <= 0) {
+      clearInterval(checkCountdownHandle);
+      checkModal.classList.add("hidden");
+      checkActive = false;
+      running = false;
+      clearInterval(tickHandle);
+      tickHandle = null;
+      startStopBtn.textContent = "Start";
+      timerStateEl.textContent = "ready";
+      sessionNote.textContent = `Session ended — no confirmation in time. Saved ${formatMinutes(Math.round(baselineSeconds / 60))} for today.`;
+      persistMyState(false, baselineSeconds);
+      renderMyClock();
+    }
+  }, 1000);
 }
 
-renderTimer();
+tapBtn.addEventListener("click", () => {
+  if (!checkActive) return;
+  tapCount++;
+  tapCountEl.textContent = String(tapCount);
+  if (tapCount >= TAPS_REQUIRED) {
+    clearInterval(checkCountdownHandle);
+    checkModal.classList.add("hidden");
+    checkActive = false;
+    runStartAt = Date.now();
+    secondsSinceCheck = 0;
+    timerStateEl.textContent = "studying";
+    persistMyState(true, baselineSeconds);
+  }
+});
 
-function refreshMinutesToday() {
+renderMyClock();
+
+/* ---- friend's live clock ---- */
+function renderFriendClock(data) {
+  if (!data) {
+    friendClockLabel.textContent = "Waiting for your study partner…";
+    friendClockLabel.classList.remove("live");
+    friendClockTime.textContent = "00:00:00";
+    if (friendTickHandle) { clearInterval(friendTickHandle); friendTickHandle = null; }
+    return;
+  }
+  const base = data.totalSeconds || 0;
+  const isRunning = !!data.running && !!data.startedAt;
+
+  function paint() {
+    const secs = isRunning ? base + (Date.now() - data.startedAt) / 1000 : base;
+    const hh = Math.floor(secs / 3600);
+    const mm = Math.floor((secs % 3600) / 60);
+    const ss = Math.floor(secs % 60);
+    friendClockTime.textContent = `${formatUnit(hh)}:${formatUnit(mm)}:${formatUnit(ss)}`;
+  }
+
+  friendClockLabel.textContent = friendKey ? (isRunning ? `${friendKey} is studying now` : `${friendKey} — today's total`) : "Study partner";
+  friendClockLabel.classList.toggle("live", isRunning);
+
+  if (friendTickHandle) { clearInterval(friendTickHandle); friendTickHandle = null; }
+  paint();
+  if (isRunning) friendTickHandle = setInterval(paint, 1000);
+}
+
+async function initFriendClock() {
+  const users = await discoverUsers();
+  friendKey = users.find((u) => u !== myKey) || null;
   const day = dayKey();
-  const minutesList = document.getElementById("minutesList");
-  db.ref(`studyMinutes/${day}`).off();
-  db.ref(`studyMinutes/${day}`).on("value", (snapshot) => {
-    const data = snapshot.val();
-    if (!data || Object.keys(data).length === 0) {
-      minutesList.innerHTML = '<p class="empty-note">Start a session to log your first minutes.</p>';
-      return;
-    }
-    minutesList.innerHTML = "";
-    Object.entries(data).forEach(([name, mins]) => {
-      const div = document.createElement("div");
-      div.className = "minutes-item";
-      div.innerHTML = `<span class="mins-value">${formatMinutes(mins)}</span><span class="mins-name">${escapeHtml(name)}</span>`;
-      minutesList.appendChild(div);
-    });
-  });
+  if (!friendKey) { renderFriendClock(null); return; }
+  db.ref(`dailyTimer/${day}/${friendKey}`).off();
+  db.ref(`dailyTimer/${day}/${friendKey}`).on("value", (snapshot) => renderFriendClock(snapshot.val()));
 }
 
 function initTimerDayWatch() {
-  refreshMinutesToday();
-  // Check once a minute whether the calendar day has rolled over past midnight,
-  // and if so, point the "today" listeners at the new day automatically.
+  const day = dayKey();
+  db.ref(`dailyTimer/${day}/${myKey}`).once("value").then((snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+    baselineSeconds = data.totalSeconds || 0;
+    if (data.running && data.startedAt) {
+      // resume seamlessly, "catching up" for any time passed since the last load
+      running = true;
+      runStartAt = data.startedAt;
+      startStopBtn.textContent = "Stop";
+      timerStateEl.textContent = "studying";
+      tickHandle = setInterval(tick, 1000);
+    }
+    renderMyClock();
+  });
+
+  initFriendClock();
+
+  // Watch for the calendar day rolling over past midnight and reset the view.
   setInterval(() => {
     const nowKey = dayKey();
     if (nowKey !== currentDay) {
       currentDay = nowKey;
-      refreshMinutesToday();
+      if (running) stopTimer("New day — yesterday's time was saved.");
+      baselineSeconds = 0;
+      renderMyClock();
+      initFriendClock();
     }
   }, 30000);
 }
@@ -518,16 +582,18 @@ function daysForMonth(monthIndex) {
   return days;
 }
 
-function createDayChartSection(sectionId, fetchValuesForDays) {
+function createDayChartSection(sectionId, fetchersByMetric) {
   const section = document.getElementById(sectionId);
   const weekPillRow = section.querySelector('[data-pills="week"]');
   const monthPillRow = section.querySelector('[data-pills="month"]');
   const yaxis = section.querySelector(".daychart-yaxis");
   const gridlines = section.querySelector(".daychart-gridlines");
+  const inner = section.querySelector(".daychart-inner");
   const barsEl = section.querySelector(".daychart-bars");
-  const xaxis = section.querySelector(".daychart-xaxis");
+  const toggleButtons = document.querySelectorAll("#metricToggle .pill");
 
   let state = { type: "week", index: 0 };
+  let metric = "time";
 
   weekPillRow.innerHTML = WEEK_OPTIONS.map((label, i) =>
     `<button class="pill" data-week="${i}">${label}</button>`).join("");
@@ -550,9 +616,19 @@ function createDayChartSection(sectionId, fetchValuesForDays) {
     p.addEventListener("click", () => { state = { type: "month", index: Number(p.dataset.month) }; render(); });
   });
 
+  toggleButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      toggleButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      metric = btn.dataset.metric;
+      render();
+    });
+  });
+
   async function render() {
     setActivePills();
     const days = state.type === "week" ? daysForWeek(state.index) : daysForMonth(state.index);
+    const fetchValuesForDays = metric === "time" ? fetchersByMetric.time : fetchersByMetric.questions;
     const valuesByDay = await fetchValuesForDays(days.map((d) => d.key)); // { dayKey: { userKey: value } }
 
     const allValues = days.flatMap((d) => Object.values(valuesByDay[d.key] || {}));
@@ -569,15 +645,18 @@ function createDayChartSection(sectionId, fetchValuesForDays) {
       gridlines.appendChild(document.createElement("span"));
     }
 
-    const barWidth = days.length > 14 ? "18px" : "30px";
+    const barWidth = days.length > 14 ? 26 : 40;
+    inner.style.width = `${days.length * (barWidth + 8)}px`;
 
     barsEl.innerHTML = "";
-    xaxis.innerHTML = "";
     days.forEach((d) => {
       const dayVals = valuesByDay[d.key] || {};
       const group = document.createElement("div");
       group.className = "day-group";
-      group.style.width = barWidth;
+      group.style.width = `${barWidth}px`;
+
+      const barsInner = document.createElement("div");
+      barsInner.className = "bars-inner";
       currentUsers.forEach((u, ui) => {
         const val = dayVals[u] || 0;
         const bar = document.createElement("div");
@@ -585,14 +664,16 @@ function createDayChartSection(sectionId, fetchValuesForDays) {
         bar.style.background = colorForUser(ui);
         bar.style.height = `${Math.min(100, (val / max) * 100)}%`;
         bar.title = `${u === myKey ? "You" : u}: ${val}`;
-        group.appendChild(bar);
+        barsInner.appendChild(bar);
       });
-      barsEl.appendChild(group);
+      group.appendChild(barsInner);
 
       const label = document.createElement("span");
+      label.className = "day-label";
       label.textContent = d.label;
-      label.style.width = barWidth;
-      xaxis.appendChild(label);
+      group.appendChild(label);
+
+      barsEl.appendChild(group);
     });
   }
 
@@ -601,13 +682,12 @@ function createDayChartSection(sectionId, fetchValuesForDays) {
 }
 
 let currentUsers = [];
-let timeChartSection = null;
-let questionsChartSection = null;
+let chartSection = null;
 
 async function discoverUsers() {
   const userKeys = new Set([myKey]);
   const [recentMinutes, allScores] = await Promise.all([
-    db.ref("studyMinutes").limitToLast(14).once("value"),
+    db.ref("dailyTimer").limitToLast(14).once("value"),
     db.ref("scores").once("value"),
   ]);
   (recentMinutes.val() ? Object.values(recentMinutes.val()) : []).forEach((dayNode) => {
@@ -632,9 +712,16 @@ function renderLegend(users) {
 }
 
 async function fetchMinutesForDays(dayKeys) {
-  const reads = await Promise.all(dayKeys.map((k) => db.ref(`studyMinutes/${k}`).once("value")));
+  const reads = await Promise.all(dayKeys.map((k) => db.ref(`dailyTimer/${k}`).once("value")));
   const result = {};
-  dayKeys.forEach((k, i) => { result[k] = reads[i].val() || {}; });
+  dayKeys.forEach((k, i) => {
+    const dayNode = reads[i].val() || {};
+    const perUser = {};
+    Object.entries(dayNode).forEach(([user, entry]) => {
+      perUser[user] = Math.round((entry.totalSeconds || 0) / 60);
+    });
+    result[k] = perUser;
+  });
   return result;
 }
 
@@ -657,11 +744,12 @@ async function fetchQuestionsForDays(dayKeys) {
 async function loadAnalysis() {
   currentUsers = await discoverUsers();
   renderLegend(currentUsers);
-  if (!timeChartSection) {
-    timeChartSection = createDayChartSection("section-time", fetchMinutesForDays);
-    questionsChartSection = createDayChartSection("section-questions", fetchQuestionsForDays);
+  if (!chartSection) {
+    chartSection = createDayChartSection("section-chart", {
+      time: fetchMinutesForDays,
+      questions: fetchQuestionsForDays,
+    });
   } else {
-    timeChartSection.render();
-    questionsChartSection.render();
+    chartSection.render();
   }
 }
