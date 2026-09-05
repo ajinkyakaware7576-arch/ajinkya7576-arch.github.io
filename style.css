@@ -111,7 +111,7 @@ html, body {
 .app {
   position: relative;
   z-index: 2;
-  max-width: 760px;
+  max-width: clamp(360px, 92vw, 1080px);
   margin: 0 auto;
   padding: 28px 18px 60px;
   min-height: 100vh;
@@ -340,62 +340,116 @@ button:focus-visible, input:focus-visible {
 .chat-form { display: flex; gap: 10px; }
 .chat-form input { flex: 1; }
 
-/* ---------- Timer ---------- */
-.timer-layout {
+/* ---------- Timer (flip clock) ---------- */
+.timer-warning {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto 26px;
+  line-height: 1.45;
+}
+
+.flipclock {
   display: flex;
-  gap: 32px;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.timer-ring-wrap { position: relative; width: 220px; height: 220px; flex-shrink: 0; }
-.timer-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
-
-.ring-track { fill: none; stroke: rgba(255, 255, 255, 0.09); stroke-width: 10; }
-
-.ring-progress {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 10;
-  stroke-linecap: round;
-  stroke-dasharray: 628;
-  stroke-dashoffset: 628;
-  transition: stroke-dashoffset 0.3s linear, stroke 0.3s ease;
-}
-
-.ring-progress.due { stroke: var(--danger); }
-
-.timer-readout {
-  position: absolute;
-  inset: 0;
+.flip-unit {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
 }
 
-#timerDisplay { font-family: var(--display-font); font-size: 2.5rem; line-height: 1; font-weight: 700; }
+.flip-unit span {
+  font-family: var(--display-font);
+  font-weight: 700;
+  font-size: 3.4rem;
+  line-height: 1;
+  color: #f4f4f8;
+  background: linear-gradient(180deg, #1c1e27 0%, #0a0b0f 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 14px 18px;
+  min-width: 92px;
+  text-align: center;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 12px 26px rgba(0, 0, 0, 0.55);
+  position: relative;
+}
 
-.timer-state { color: var(--text-dim); font-size: 0.8rem; margin-top: 6px; text-transform: lowercase; }
+.flip-unit span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.5);
+}
 
-.timer-controls { flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 16px; }
+.flip-unit label {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
 
-.ring-hint { color: var(--text-dim); font-size: 0.85rem; margin: 0; }
+.flip-colon {
+  font-family: var(--display-font);
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  align-self: flex-start;
+  margin-top: 14px;
+}
 
-.action-row { display: flex; gap: 12px; }
+.timer-state.center { text-align: center; margin: 18px 0 0; }
+.session-note.center { text-align: center; }
+.action-row.center { justify-content: center; margin: 16px 0 6px; }
 
-.session-note { color: var(--accent-3); font-size: 0.85rem; min-height: 1.2em; margin: 0; }
+.friend-clock {
+  margin-top: 34px;
+  padding-top: 22px;
+  border-top: 1px solid var(--panel-line);
+  text-align: center;
+}
 
-.minutes-today { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--panel-line); }
+.friend-clock-label {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+}
 
-.minutes-list { display: flex; gap: 24px; flex-wrap: wrap; }
+.friend-clock-label.live::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34d399;
+  margin-right: 6px;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25);
+}
 
-.minutes-item { display: flex; flex-direction: column; gap: 2px; }
+.friend-clock-time {
+  font-family: var(--display-font);
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: var(--accent-2);
+}
 
-.minutes-item .mins-value { font-family: var(--display-font); font-size: 1.7rem; color: var(--accent); font-weight: 700; }
-
-.minutes-item .mins-name { font-size: 0.8rem; color: var(--text-dim); }
+.tap-btn {
+  width: 100%;
+  padding: 22px;
+  font-size: 1.1rem;
+  margin-top: 10px;
+}
 
 /* ---------- Scoreboard ---------- */
 .score-list { display: flex; gap: 20px; flex-wrap: wrap; }
@@ -447,6 +501,17 @@ button:focus-visible, input:focus-visible {
 
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 
+.toggle-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.toggle-row .pill {
+  padding: 9px 20px;
+  font-size: 0.88rem;
+}
+
 .analysis-section { margin-bottom: 40px; }
 
 .filter-label {
@@ -476,11 +541,11 @@ button:focus-visible, input:focus-visible {
 
 .pill.active { background: var(--text); color: var(--bg-deep); border-color: var(--text); font-weight: 700; }
 
-/* ---------- Day chart (axis + gridlines + bars) ---------- */
+/* ---------- Day chart (axis + gridlines + bars), single synced scroll ---------- */
 .daychart {
   display: flex;
   gap: 10px;
-  height: 200px;
+  height: 240px;
   margin-top: 18px;
 }
 
@@ -490,22 +555,32 @@ button:focus-visible, input:focus-visible {
   justify-content: space-between;
   align-items: flex-end;
   width: 32px;
-  height: 100%;
+  height: 200px;
   font-size: 0.68rem;
   color: var(--text-dim);
   flex-shrink: 0;
+  padding-bottom: 30px;
 }
 
-.daychart-plot {
-  position: relative;
+.daychart-scroll {
   flex: 1;
   height: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.daychart-inner {
+  position: relative;
+  height: 100%;
+  min-width: 100%;
 }
 
 .daychart-gridlines {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -523,17 +598,25 @@ button:focus-visible, input:focus-visible {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  height: 100%;
-  min-width: 100%;
+  height: 200px;
   padding: 0 4px;
 }
 
 .day-group {
   display: flex;
-  align-items: flex-end;
-  gap: 3px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   height: 100%;
   flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.day-group .bars-inner {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 200px;
 }
 
 .day-bar {
@@ -543,19 +626,24 @@ button:focus-visible, input:focus-visible {
   transition: height 0.3s ease;
 }
 
-.daychart-xaxis {
-  display: flex;
-  gap: 8px;
-  padding: 6px 4px 0 42px;
-  overflow-x: auto;
-}
-
-.daychart-xaxis span {
+.day-label {
   font-size: 0.68rem;
   color: var(--text-dim);
   text-align: center;
-  flex-shrink: 0;
 }
+
+/* custom scrollbar */
+.daychart-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) rgba(255, 255, 255, 0.05);
+}
+
+.daychart-scroll::-webkit-scrollbar { height: 8px; }
+.daychart-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 4px; }
+.daychart-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+.daychart-scroll::-webkit-scrollbar-thumb:hover { background: #5457e0; }
+
+.month-pill-row { row-gap: 8px; }
 
 /* ---------- Footer ---------- */
 .site-footer { margin-top: 28px; text-align: center; font-size: 0.78rem; color: var(--text-dim); }
