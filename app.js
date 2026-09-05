@@ -116,113 +116,86 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
 /* ==========================================================
    CHAT (with reply + edit)
    ========================================================== */
-let replyDraft = null; // { key, name, text }
-let editingKey = null;
-let latestMessages = [];
+function renderMessages() {
+  if (!messagesEl) return;
 
-function initChat() {
-  const messagesEl = document.getElementById("chatMessages");
-  const form = document.getElementById("chatForm");
-  const input = document.getElementById("chatInput");
-  const replyBanner = document.getElementById("replyBanner");
-  const replyBannerText = document.getElementById("replyBannerText");
-  const replyCancelBtn = document.getElementById("replyCancelBtn");
+  messagesEl.innerHTML = "";
 
-  function renderReplyBanner() {
-    if (replyDraft) {
-      replyBannerText.textContent = `Replying to ${replyDraft.name}: "${replyDraft.text}"`;
-      replyBanner.classList.remove("hidden");
-    } else {
-      replyBanner.classList.add("hidden");
-    }
-  }
+  Object.entries(messagesCache || {}).forEach(([id, msg]) => {
+    const isMine = msg.senderKey === myKey;
 
-  function saveEdit(key, newText) {
-    const text = newText.trim();
-    if (!text) return;
-    db.ref(`messages/${key}`).update({ text, edited: true });
-    editingKey = null;
-    renderMessages();
-  }
+    const div = document.createElement("div");
+    div.className = `msg ${isMine ? "mine" : ""}`;
 
-  function renderMessages() {
-    messagesEl.innerHTML = "";
-    if (latestMessages.length === 0) {
-      messagesEl.innerHTML = '<p class="empty-note">No messages yet — say hello.</p>';
-      return;
-    }
+    div.innerHTML = `
+      <div class="msg-header">
+        <strong>${escapeHtml(msg.senderName || "Unknown")}</strong>
+        <span class="msg-time">${formatMessageTime(msg.timestamp)}</span>
+      </div>
 
-    latestMessages.forEach((m) => {
-      const isMine = m.name === myName;
-      const div = document.createElement("div");
-      div.className = "msg " + (isMine ? "mine" : "theirs");
+      ${msg.replyTo ? `
+        <div class="msg-reply-preview">
+          <strong>${escapeHtml(msg.replyTo.senderName || "")}</strong>
+          <div>${escapeHtml(msg.replyTo.text || "")}</div>
+        </div>
+      ` : ""}
 
-      let inner = `<span class="msg-meta">${escapeHtml(m.name)} · ${timeAgo(m.ts)}${m.edited ? ' <span class="msg-edited-tag">(edited)</span>' : ""}</span>`;
-      if (m.replyTo) inner += `<div class="msg-quote">↳ ${escapeHtml(m.replyTo.name)}: ${escapeHtml(m.replyTo.text)}</div>`;
+      <div class="msg-body">
+        <span class="msg-text">${escapeHtml(msg.text || "")}</span>
 
-      if (editingKey === m.key) {
-        inner += `
-          <div class="msg-edit-row">
-            <input type="text" class="edit-input" value="${escapeHtml(m.text)}" maxlength="500">
-            <button class="btn tiny primary save-edit">Save</button>
-            <button class="btn tiny cancel-edit">Cancel</button>
-          </div>`;
-      } else {
-        inner += `<div class="msg-text">${escapeHtml(m.text)}</div>`;
-        inner += `<div class="msg-actions"><button class="reply-btn">reply</button>${isMine ? '<button class="edit-btn">edit</button>' : ""}</div>`;
-      }
+        ${msg.edited ? `<span class="edited-label">edited</span>` : ""}
 
-      div.innerHTML = inner;
-      messagesEl.appendChild(div);
+        <div class="msg-menu">
+          <button
+            class="msg-menu-btn"
+            type="button"
+            aria-label="Message options"
+            aria-expanded="false"
+          >⋯</button>
 
-      if (editingKey === m.key) {
-        const editInput = div.querySelector(".edit-input");
-        editInput.focus();
-        editInput.setSelectionRange(editInput.value.length, editInput.value.length);
-        div.querySelector(".save-edit").addEventListener("click", () => saveEdit(m.key, editInput.value));
-        div.querySelector(".cancel-edit").addEventListener("click", () => { editingKey = null; renderMessages(); });
-        editInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") saveEdit(m.key, editInput.value);
-          if (e.key === "Escape") { editingKey = null; renderMessages(); }
-        });
-      } else {
-        div.querySelector(".reply-btn").addEventListener("click", () => {
-          replyDraft = { key: m.key, name: m.name, text: m.text.slice(0, 60) };
-          renderReplyBanner();
-          input.focus();
-        });
-        if (isMine) {
-          div.querySelector(".edit-btn").addEventListener("click", () => { editingKey = m.key; renderMessages(); });
-        }
+          <div class="msg-menu-dropdown">
+            <button type="button" class="reply-btn">Reply</button>
+
+            ${isMine ? `
+              <button type="button" class="edit-btn">Edit</button>
+            ` : ""}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Reply
+    div.querySelector(".reply-btn")?.addEventListener("click", () => {
+      startReply(id);
+      closeAllMessageMenus();
+    });
+
+    // Edit
+    div.querySelector(".edit-btn")?.addEventListener("click", () => {
+      startEdit(id);
+      closeAllMessageMenus();
+    });
+
+    // Three-dot menu
+    div.querySelector(".msg-menu-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      const menu = div.querySelector(".msg-menu-dropdown");
+      const button = div.querySelector(".msg-menu-btn");
+
+      const wasOpen = menu.classList.contains("show");
+
+      closeAllMessageMenus();
+
+      if (!wasOpen) {
+        menu.classList.add("show");
+        button.setAttribute("aria-expanded", "true");
       }
     });
 
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-
-  db.ref("messages").limitToLast(300).on("value", (snapshot) => {
-    const entries = [];
-    snapshot.forEach((child) => { entries.push({ key: child.key, ...child.val() }); });
-    entries.sort((a, b) => a.ts - b.ts);
-    latestMessages = entries;
-    renderMessages();
-  });
-
-  replyCancelBtn.addEventListener("click", () => { replyDraft = null; renderReplyBanner(); });
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const text = input.value.trim();
-    if (!text) return;
-    const payload = { name: myName, text, ts: Date.now() };
-    if (replyDraft) payload.replyTo = { name: replyDraft.name, text: replyDraft.text };
-    db.ref("messages").push(payload);
-    input.value = "";
-    replyDraft = null;
-    renderReplyBanner();
+    messagesEl.appendChild(div);
   });
 }
-
 /* ==========================================================
    TIMER — persistent daily total (not a per-session stopwatch).
    The clock shows today's accumulated study time; Start resumes
@@ -258,14 +231,29 @@ const friendClockTime = document.getElementById("friendClockTime");
 function formatUnit(n) { return String(Math.max(0, Math.floor(n))).padStart(2, "0"); }
 
 function renderClockInto(totalSec, hEl, mEl, sEl) {
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = Math.floor(totalSec % 60);
-  hEl.textContent = formatUnit(h);
-  mEl.textContent = formatUnit(m);
-  sEl.textContent = formatUnit(s);
-}
+  const hours = Math.floor(totalSec / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
 
+  const h = String(hours).padStart(2, "0");
+  const m = String(minutes).padStart(2, "0");
+  const s = String(seconds).padStart(2, "0");
+
+  if (hEl) {
+    const leaf = document.getElementById("fcHoursLeaf");
+    animateClockUnit(hEl, leaf, h);
+  }
+
+  if (mEl) {
+    const leaf = document.getElementById("fcMinutesLeaf");
+    animateClockUnit(mEl, leaf, m);
+  }
+
+  if (sEl) {
+    const leaf = document.getElementById("fcSecondsLeaf");
+    animateClockUnit(sEl, leaf, s);
+  }
+}
 function computeMyDisplaySeconds() {
   if (running && runStartAt) return baselineSeconds + (Date.now() - runStartAt) / 1000;
   return baselineSeconds;
@@ -455,6 +443,19 @@ function initTimerDayWatch() {
     }
   }, 30000);
 }
+function closeAllMessageMenus() {
+  document.querySelectorAll(".msg-menu-dropdown.show").forEach(menu => {
+    menu.classList.remove("show");
+  });
+
+  document.querySelectorAll(".msg-menu-btn[aria-expanded='true']").forEach(btn => {
+    btn.setAttribute("aria-expanded", "false");
+  });
+}
+
+document.addEventListener("click", () => {
+  closeAllMessageMenus();
+});
 
 /* ==========================================================
    SCOREBOARD — Chemistry / Physics / Maths, per person
@@ -475,6 +476,30 @@ function sumScoresAcrossDays(data) {
     });
   });
   return totals;
+}
+function animateClockUnit(faceEl, leafEl, newValue) {
+  if (!faceEl) return;
+
+  const oldValue = faceEl.textContent;
+
+  if (oldValue === newValue) return;
+
+  if (leafEl) {
+    leafEl.textContent = oldValue;
+  }
+
+  faceEl.textContent = newValue;
+
+  faceEl.classList.remove("flipping");
+
+  // Force browser reflow so the animation restarts every time
+  void faceEl.offsetWidth;
+
+  faceEl.classList.add("flipping");
+
+  faceEl.addEventListener("animationend", () => {
+    faceEl.classList.remove("flipping");
+  }, { once: true });
 }
 
 function initScoreboard() {
@@ -751,5 +776,56 @@ async function loadAnalysis() {
     });
   } else {
     chartSection.render();
+  }
+}
+async function removeInactiveUser(name) {
+  const key = sanitizeKey(name);
+
+  if (!key) {
+    throw new Error("Invalid name.");
+  }
+
+  if (key === myKey) {
+    throw new Error("You cannot remove the currently signed-in user.");
+  }
+
+  const [timerSnap, scoresSnap] = await Promise.all([
+    db.ref("dailyTimer").once("value"),
+    db.ref("scores").once("value")
+  ]);
+
+  const timerData = timerSnap.val() || {};
+  const scoresData = scoresSnap.val() || {};
+
+  const updates = {};
+
+  // Remove from daily timer history
+  Object.keys(timerData).forEach(day => {
+    if (timerData[day]?.[key] !== undefined) {
+      updates[`dailyTimer/${day}/${key}`] = null;
+    }
+  });
+
+  // Remove from scoreboard history
+  Object.keys(scoresData).forEach(day => {
+    SUBJECTS.forEach(subject => {
+      if (scoresData[day]?.[subject]?.[key] !== undefined) {
+        updates[`scores/${day}/${subject}/${key}`] = null;
+      }
+    });
+  });
+
+  if (Object.keys(updates).length === 0) {
+    console.log(`No data found for "${name}".`);
+    return;
+  }
+
+  await db.ref().update(updates);
+
+  console.log(`Removed inactive user "${name}".`);
+
+  // Refresh user list
+  if (typeof discoverUsers === "function") {
+    discoverUsers();
   }
 }
