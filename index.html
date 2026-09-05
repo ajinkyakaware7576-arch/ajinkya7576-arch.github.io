@@ -53,7 +53,7 @@
   </header>
 
   <nav class="tabs" role="tablist">
-    <button class="tab-btn active" data-tab="chat" role="tab" aria-selected="true">Chat</button>
+    <button class="tab-btn active" data-tab="chat" role="tab" aria-selected="true">Chat<span id="chatBadge" class="tab-badge hidden">!</span></button>
     <button class="tab-btn" data-tab="timer" role="tab" aria-selected="false">Timer</button>
     <button class="tab-btn" data-tab="score" role="tab" aria-selected="false">Scoreboard</button>
     <button class="tab-btn" data-tab="analysis" role="tab" aria-selected="false">Analysis</button>
@@ -81,11 +81,29 @@
       <p class="timer-warning">Every 20 minutes you'll be asked to tap the screen 5 times within a minute to confirm you're still studying — miss it and the session ends automatically.</p>
 
       <div class="flipclock">
-        <div class="flip-unit"><span id="fcHours">00</span><label>hrs</label></div>
+        <div class="flip-unit">
+          <div class="flip-card">
+            <span class="flip-card-face" id="fcHours">00</span>
+            <span class="flip-card-leaf" id="fcHoursLeaf">00</span>
+          </div>
+          <label>hrs</label>
+        </div>
         <span class="flip-colon">:</span>
-        <div class="flip-unit"><span id="fcMinutes">00</span><label>min</label></div>
+        <div class="flip-unit">
+          <div class="flip-card">
+            <span class="flip-card-face" id="fcMinutes">00</span>
+            <span class="flip-card-leaf" id="fcMinutesLeaf">00</span>
+          </div>
+          <label>min</label>
+        </div>
         <span class="flip-colon">:</span>
-        <div class="flip-unit"><span id="fcSeconds">00</span><label>sec</label></div>
+        <div class="flip-unit">
+          <div class="flip-card">
+            <span class="flip-card-face" id="fcSeconds">00</span>
+            <span class="flip-card-leaf" id="fcSecondsLeaf">00</span>
+          </div>
+          <label>sec</label>
+        </div>
       </div>
 
       <p id="timerState" class="timer-state center">ready</p>
