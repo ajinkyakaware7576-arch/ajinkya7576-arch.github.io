@@ -297,12 +297,6 @@ let currentDay = dayKey();
 let friendKey = null;
 let friendTickHandle = null;
 
-const fcHours = document.getElementById("fcHours");
-const fcMinutes = document.getElementById("fcMinutes");
-const fcSeconds = document.getElementById("fcSeconds");
-const fcHoursLeaf = document.getElementById("fcHoursLeaf");
-const fcMinutesLeaf = document.getElementById("fcMinutesLeaf");
-const fcSecondsLeaf = document.getElementById("fcSecondsLeaf");
 const timerStateEl = document.getElementById("timerState");
 const startStopBtn = document.getElementById("startStopBtn");
 const sessionNote = document.getElementById("sessionNote");
@@ -311,14 +305,41 @@ const friendClockTime = document.getElementById("friendClockTime");
 
 function formatUnit(n) { return String(Math.max(0, Math.floor(n))).padStart(2, "0"); }
 
-function flipUnitTo(faceEl, leafEl, newValue) {
-  const old = faceEl.textContent;
-  if (old === newValue) return;
-  leafEl.textContent = old;          // the outgoing digit, about to fold away
-  faceEl.textContent = newValue;     // the new digit is already underneath
-  leafEl.classList.remove("flipping");
-  void leafEl.offsetWidth;           // force reflow so the animation restarts
-  leafEl.classList.add("flipping");
+function setupFlipUnit(prefix) {
+  return {
+    top: document.getElementById(`${prefix}Top`),
+    bottom: document.getElementById(`${prefix}Bottom`),
+    flap: document.getElementById(`${prefix}Flap`),
+    flapFront: document.getElementById(`${prefix}FlapFront`),
+    flapBack: document.getElementById(`${prefix}FlapBack`),
+    current: "00",
+  };
+}
+
+const flipHours = setupFlipUnit("fcHours");
+const flipMinutes = setupFlipUnit("fcMinutes");
+const flipSeconds = setupFlipUnit("fcSeconds");
+
+function flipUnitTo(unit, newValue) {
+  if (unit.current === newValue) return;
+  const oldValue = unit.current;
+  unit.current = newValue;
+
+  // front of the flap still shows the outgoing value; back is pre-loaded with the new one
+  unit.flapFront.textContent = oldValue;
+  unit.flapBack.textContent = newValue;
+
+  unit.flap.classList.remove("flipping");
+  void unit.flap.offsetWidth; // restart animation
+  unit.flap.classList.add("flipping");
+
+  clearTimeout(unit._resetHandle);
+  unit._resetHandle = setTimeout(() => {
+    unit.flap.classList.remove("flipping");
+    unit.flapFront.textContent = newValue;
+    unit.top.textContent = newValue;
+    unit.bottom.textContent = newValue; // swap the moment the flap settles, so top/bottom change together
+  }, 500);
 }
 
 function computeMyDisplaySeconds() {
@@ -331,9 +352,9 @@ function renderMyClock() {
   const h = formatUnit(Math.floor(totalSec / 3600));
   const m = formatUnit(Math.floor((totalSec % 3600) / 60));
   const s = formatUnit(Math.floor(totalSec % 60));
-  flipUnitTo(fcHours, fcHoursLeaf, h);
-  flipUnitTo(fcMinutes, fcMinutesLeaf, m);
-  flipUnitTo(fcSeconds, fcSecondsLeaf, s);
+  flipUnitTo(flipHours, h);
+  flipUnitTo(flipMinutes, m);
+  flipUnitTo(flipSeconds, s);
 }
 
 function persistMyState(isRunning, seconds) {
