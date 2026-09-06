@@ -540,13 +540,16 @@ function initTimerDayWatch() {
 
 /* ==========================================================
    SCOREBOARD — Chemistry / Physics / Maths, per person
-   Scores are stored dated (scores/{day}/{subject}/{userKey}) so the
-   Analysis tab can chart them per day; totals here are the sum
-   across every day on record.
+   Shows only TODAY's counts and resets at midnight, same as the
+   timer. Every day's numbers are still stored dated
+   (scores/{day}/{subject}/{userKey}), so nothing is lost — the
+   full history just lives in the Analysis tab instead of here.
    ========================================================== */
 function sumScoresAcrossDays(data) {
   // data shape: { [day]: { [subject]: { [userKey]: count } } }
-  const totals = {}; // { [subject]: { [userKey]: count } }
+  // used only for discovering every user who has ever logged a score —
+  // the Scoreboard itself only ever looks at today's node.
+  const totals = {};
   SUBJECTS.forEach((s) => (totals[s] = {}));
   Object.values(data || {}).forEach((dayNode) => {
     SUBJECTS.forEach((s) => {
@@ -559,64 +562,81 @@ function sumScoresAcrossDays(data) {
   return totals;
 }
 
-function initScoreboard() {
+let scoreboardDay = dayKey();
+
+function renderScoreboard(dayData) {
   const scoreList = document.getElementById("scoreList");
-  db.ref("scores").off();
-  db.ref("scores").on("value", (snapshot) => {
-    const raw = snapshot.val() || {};
-    const totals = sumScoresAcrossDays(raw);
+  const data = dayData || {};
 
-    const userKeys = new Set([myKey]);
-    SUBJECTS.forEach((s) => Object.keys(totals[s]).forEach((k) => userKeys.add(k)));
+  const userKeys = new Set([myKey]);
+  SUBJECTS.forEach((s) => Object.keys(data[s] || {}).forEach((k) => userKeys.add(k)));
 
-    const sortedKeys = Array.from(userKeys).sort((a, b) => {
-      if (a === myKey) return -1;
-      if (b === myKey) return 1;
-      return a.localeCompare(b);
-    });
-
-    scoreList.innerHTML = "";
-    sortedKeys.forEach((key) => {
-      const isMine = key === myKey;
-      const displayName = isMine ? myName : key;
-      const counts = SUBJECTS.map((s) => totals[s][key] || 0);
-      const total = counts.reduce((a, b) => a + b, 0);
-
-      const card = document.createElement("div");
-      card.className = "score-card " + (isMine ? "mine" : "theirs");
-      card.innerHTML = `
-        <p class="score-name">${escapeHtml(isMine ? "You" : displayName)}</p>
-        <p class="score-count">${total}</p>
-        <div class="subject-rows">
-          ${SUBJECTS.map((s, i) => `
-            <div class="subject-row ${s}">
-              <span class="subject-label">${SUBJECT_LABELS[s]}</span>
-              <span class="subject-count">${counts[i]}</span>
-              ${isMine ? `<span class="subject-actions">
-                <button class="btn tiny add-q" data-subject="${s}">+1</button>
-                <button class="btn tiny undo-q" data-subject="${s}">−1</button>
-              </span>` : ""}
-            </div>`).join("")}
-        </div>
-      `;
-      scoreList.appendChild(card);
-
-      if (isMine) {
-        card.querySelectorAll(".add-q").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const today = dayKey();
-            db.ref(`scores/${today}/${btn.dataset.subject}/${myKey}`).transaction((c) => (c || 0) + 1);
-          });
-        });
-        card.querySelectorAll(".undo-q").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const today = dayKey();
-            db.ref(`scores/${today}/${btn.dataset.subject}/${myKey}`).transaction((c) => Math.max(0, (c || 0) - 1));
-          });
-        });
-      }
-    });
+  const sortedKeys = Array.from(userKeys).sort((a, b) => {
+    if (a === myKey) return -1;
+    if (b === myKey) return 1;
+    return a.localeCompare(b);
   });
+
+  scoreList.innerHTML = "";
+  sortedKeys.forEach((key) => {
+    const isMine = key === myKey;
+    const displayName = isMine ? myName : key;
+    const counts = SUBJECTS.map((s) => (data[s] && data[s][key]) || 0);
+    const total = counts.reduce((a, b) => a + b, 0);
+
+    const card = document.createElement("div");
+    card.className = "score-card " + (isMine ? "mine" : "theirs");
+    card.innerHTML = `
+      <p class="score-name">${escapeHtml(isMine ? "You" : displayName)}</p>
+      <p class="score-count">${total}</p>
+      <div class="subject-rows">
+        ${SUBJECTS.map((s, i) => `
+          <div class="subject-row ${s}">
+            <span class="subject-label">${SUBJECT_LABELS[s]}</span>
+            <span class="subject-count">${counts[i]}</span>
+            ${isMine ? `<span class="subject-actions">
+              <button class="btn tiny add-q" data-subject="${s}">+1</button>
+              <button class="btn tiny undo-q" data-subject="${s}">−1</button>
+            </span>` : ""}
+          </div>`).join("")}
+      </div>
+    `;
+    scoreList.appendChild(card);
+
+    if (isMine) {
+      card.querySelectorAll(".add-q").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const today = dayKey();
+          db.ref(`scores/${today}/${btn.dataset.subject}/${myKey}`).transaction((c) => (c || 0) + 1);
+        });
+      });
+      card.querySelectorAll(".undo-q").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const today = dayKey();
+          db.ref(`scores/${today}/${btn.dataset.subject}/${myKey}`).transaction((c) => Math.max(0, (c || 0) - 1));
+        });
+      });
+    }
+  });
+}
+
+function watchScoreboardDay(day) {
+  db.ref(`scores/${day}`).off();
+  db.ref(`scores/${day}`).on("value", (snapshot) => renderScoreboard(snapshot.val()));
+}
+
+function initScoreboard() {
+  scoreboardDay = dayKey();
+  watchScoreboardDay(scoreboardDay);
+
+  // catch the midnight rollover so the board clears itself for the new day
+  setInterval(() => {
+    const nowKey = dayKey();
+    if (nowKey !== scoreboardDay) {
+      scoreboardDay = nowKey;
+      watchScoreboardDay(scoreboardDay);
+    }
+  }, 30000);
 }
 
 /* ==========================================================
