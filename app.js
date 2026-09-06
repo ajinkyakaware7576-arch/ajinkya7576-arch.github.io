@@ -562,7 +562,8 @@ function sumScoresAcrossDays(data) {
   return totals;
 }
 
-let scoreboardDay = dayKey();
+// (scoreboardDay is declared locally inside initScoreboard below —
+// keeping it module-level caused a load-order crash for returning visitors)
 
 function renderScoreboard(dayData) {
   const scoreList = document.getElementById("scoreList");
@@ -626,7 +627,7 @@ function watchScoreboardDay(day) {
 }
 
 function initScoreboard() {
-  scoreboardDay = dayKey();
+  let scoreboardDay = dayKey();
   watchScoreboardDay(scoreboardDay);
 
   // catch the midnight rollover so the board clears itself for the new day
