@@ -70,7 +70,14 @@
         <span id="replyBannerText"></span>
         <button id="replyCancelBtn" class="link-btn">cancel</button>
       </div>
+      <div id="imagePreviewBanner" class="image-preview-banner hidden">
+        <img id="imagePreviewThumb" src="" alt="">
+        <span>Photo ready to send</span>
+        <button id="imageCancelBtn" class="link-btn">remove</button>
+      </div>
       <form id="chatForm" class="chat-form">
+        <button type="button" id="attachBtn" class="attach-btn" title="Attach a photo">📷</button>
+        <input id="photoInput" type="file" accept="image/*" class="hidden">
         <input id="chatInput" type="text" placeholder="Write something…" maxlength="500" autocomplete="off">
         <button type="submit" class="btn primary">Send</button>
       </form>
