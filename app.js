@@ -145,6 +145,13 @@ function initChat() {
   const replyBanner = document.getElementById("replyBanner");
   const replyBannerText = document.getElementById("replyBannerText");
   const replyCancelBtn = document.getElementById("replyCancelBtn");
+  const attachBtn = document.getElementById("attachBtn");
+  const photoInput = document.getElementById("photoInput");
+  const imagePreviewBanner = document.getElementById("imagePreviewBanner");
+  const imagePreviewThumb = document.getElementById("imagePreviewThumb");
+  const imageCancelBtn = document.getElementById("imageCancelBtn");
+
+  let pendingImage = null; // compressed data URL waiting to be sent
 
   function renderReplyBanner() {
     if (replyDraft) {
@@ -181,24 +188,29 @@ function initChat() {
       if (editingKey === m.key) {
         inner += `
           <div class="msg-edit-row">
-            <input type="text" class="edit-input" value="${escapeHtml(m.text)}" maxlength="500">
+            <input type="text" class="edit-input" value="${escapeHtml(m.text || "")}" maxlength="500">
             <button class="btn tiny primary save-edit">Save</button>
             <button class="btn tiny cancel-edit">Cancel</button>
           </div>`;
       } else {
-        inner += `<div class="msg-text">${escapeHtml(m.text)}</div>`;
+        if (m.imageData) inner += `<img class="msg-image" src="${m.imageData}" alt="shared photo">`;
+        if (m.text) inner += `<div class="msg-text">${escapeHtml(m.text)}</div>`;
         inner += `
           <div class="msg-menu">
             <button class="msg-menu-btn" aria-label="message options">⋯</button>
             <div class="msg-menu-dropdown${openMenuKey === m.key ? " open" : ""}">
               <button class="menu-reply">Reply</button>
-              ${isMine ? '<button class="menu-edit">Edit</button>' : ""}
+              ${isMine && m.text ? '<button class="menu-edit">Edit</button>' : ""}
             </div>
           </div>`;
       }
 
       div.innerHTML = inner;
       messagesEl.appendChild(div);
+
+      if (m.imageData) {
+        div.querySelector(".msg-image").addEventListener("click", () => window.open(m.imageData, "_blank"));
+      }
 
       if (editingKey === m.key) {
         const editInput = div.querySelector(".edit-input");
@@ -224,11 +236,11 @@ function initChat() {
           e.stopPropagation();
           openMenuKey = null;
           dropdown.classList.remove("open");
-          replyDraft = { key: m.key, name: m.name, text: m.text.slice(0, 60) };
+          replyDraft = { key: m.key, name: m.name, text: m.text ? m.text.slice(0, 60) : "📷 Photo" };
           renderReplyBanner();
           input.focus();
         });
-        if (isMine) {
+        if (isMine && m.text) {
           dropdown.querySelector(".menu-edit").addEventListener("click", (e) => {
             e.stopPropagation();
             openMenuKey = null;
@@ -261,16 +273,77 @@ function initChat() {
 
   replyCancelBtn.addEventListener("click", () => { replyDraft = null; renderReplyBanner(); });
 
+  attachBtn.addEventListener("click", () => photoInput.click());
+
+  photoInput.addEventListener("change", async () => {
+    const file = photoInput.files[0];
+    photoInput.value = "";
+    if (!file) return;
+    try {
+      pendingImage = await compressImageToDataUrl(file);
+      imagePreviewThumb.src = pendingImage;
+      imagePreviewBanner.classList.remove("hidden");
+    } catch (err) {
+      console.error("Image processing failed:", err);
+      sessionNoteForChat("Couldn't read that image — try a different file.");
+    }
+  });
+
+  function sessionNoteForChat(msg) {
+    // lightweight inline feedback without adding a new UI element
+    imagePreviewBanner.classList.remove("hidden");
+    imagePreviewThumb.removeAttribute("src");
+    imagePreviewBanner.querySelector("span").textContent = msg;
+    setTimeout(() => imagePreviewBanner.classList.add("hidden"), 2500);
+  }
+
+  imageCancelBtn.addEventListener("click", () => {
+    pendingImage = null;
+    imagePreviewBanner.classList.add("hidden");
+  });
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const text = input.value.trim();
-    if (!text) return;
-    const payload = { name: myName, text, ts: Date.now() };
+    if (!text && !pendingImage) return;
+    const payload = { name: myName, ts: Date.now() };
+    if (text) payload.text = text;
+    if (pendingImage) payload.imageData = pendingImage;
     if (replyDraft) payload.replyTo = { name: replyDraft.name, text: replyDraft.text };
     db.ref("messages").push(payload);
     input.value = "";
+    pendingImage = null;
+    imagePreviewBanner.classList.add("hidden");
     replyDraft = null;
     renderReplyBanner();
+  });
+}
+
+// Resizes + re-encodes an image client-side so it's small enough to store
+// directly in the database (no Firebase Storage / billing plan needed).
+function compressImageToDataUrl(file, maxDimension = 1000, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Could not read file"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Could not decode image"));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDimension || height > maxDimension) {
+          const scale = maxDimension / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
   });
 }
 
