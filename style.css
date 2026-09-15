@@ -530,7 +530,10 @@ button:focus-visible, input:focus-visible {
 }
 
 .card-top .glyph { top: 0; }
-.card-bottom .glyph { bottom: 0; }
+.card-bottom .glyph {
+  top: -66px;
+  bottom: auto;
+}
 
 .flap {
   position: absolute;
@@ -831,6 +834,17 @@ button:focus-visible, input:focus-visible {
 .daychart-scroll::-webkit-scrollbar-thumb:hover { background: #5457e0; }
 
 .month-pill-row { row-gap: 8px; }
+
+
+/*
+ * ---------- Flip clock lower-half alignment fix ----------
+ * The glyph is 132px tall while each visible half is 66px.
+ * The top half displays y=0..66 of the glyph. The bottom half
+ * must display y=66..132 of that same glyph, so it is shifted
+ * upward by exactly 66px. Using bottom:0 caused the bottom half
+ * to align to the other end of the glyph and could make the
+ * same full/upper number appear reflected incorrectly.
+ */
 
 /* ---------- Footer ---------- */
 .site-footer { margin-top: 28px; text-align: center; font-size: 0.78rem; color: var(--text-dim); }
