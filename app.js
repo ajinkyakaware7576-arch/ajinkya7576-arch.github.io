@@ -179,52 +179,65 @@ function initChat() {
 
     latestMessages.forEach((m) => {
       const isMine = m.name === myName;
-      const div = document.createElement("div");
-      div.className = "msg " + (isMine ? "mine" : "theirs");
 
-      let inner = `<span class="msg-meta">${escapeHtml(m.name)} · ${timeAgo(m.ts)}${m.edited ? ' <span class="msg-edited-tag">(edited)</span>' : ""}</span>`;
-      if (m.replyTo) inner += `<div class="msg-quote">↳ ${escapeHtml(m.replyTo.name)}: ${escapeHtml(m.replyTo.text)}</div>`;
+      const row = document.createElement("div");
+      row.className = "msg-row " + (isMine ? "mine" : "theirs");
+
+      const bubble = document.createElement("div");
+      bubble.className = "msg";
+
+      let bubbleInner = "";
+      if (m.replyTo) bubbleInner += `<div class="msg-quote">↳ ${escapeHtml(m.replyTo.name)}: ${escapeHtml(m.replyTo.text)}</div>`;
 
       if (editingKey === m.key) {
-        inner += `
+        bubbleInner += `
           <div class="msg-edit-row">
             <input type="text" class="edit-input" value="${escapeHtml(m.text || "")}" maxlength="500">
             <button class="btn tiny primary save-edit">Save</button>
             <button class="btn tiny cancel-edit">Cancel</button>
           </div>`;
+        bubble.innerHTML = bubbleInner;
+        row.appendChild(bubble);
       } else {
-        if (m.imageData) inner += `<img class="msg-image" src="${m.imageData}" alt="shared photo">`;
-        if (m.text) inner += `<div class="msg-text">${escapeHtml(m.text)}</div>`;
-        inner += `
-          <div class="msg-menu">
-            <button class="msg-menu-btn" aria-label="message options">⋯</button>
-            <div class="msg-menu-dropdown${openMenuKey === m.key ? " open" : ""}">
-              <button class="menu-reply">Reply</button>
-              ${isMine && m.text ? '<button class="menu-edit">Edit</button>' : ""}
-            </div>
+        if (m.imageData) bubbleInner += `<img class="msg-image" src="${m.imageData}" alt="shared photo">`;
+        if (m.text) bubbleInner += `<div class="msg-text">${escapeHtml(m.text)}</div>`;
+        bubble.innerHTML = bubbleInner;
+
+        const menu = document.createElement("div");
+        menu.className = "msg-menu";
+        const infoLine = `${escapeHtml(m.name)} · ${timeAgo(m.ts)}${m.edited ? " (edited)" : ""}`;
+        menu.innerHTML = `
+          <button class="msg-menu-btn" aria-label="message options">⋯</button>
+          <div class="msg-menu-dropdown${openMenuKey === m.key ? " open" : ""}">
+            <div class="menu-info">${infoLine}</div>
+            <button class="menu-reply">Reply</button>
+            ${isMine && m.text ? '<button class="menu-edit">Edit</button>' : ""}
           </div>`;
+
+        // menu sits on the outer side: left of my own bubbles, right of theirs
+        if (isMine) { row.appendChild(menu); row.appendChild(bubble); }
+        else { row.appendChild(bubble); row.appendChild(menu); }
       }
 
-      div.innerHTML = inner;
-      messagesEl.appendChild(div);
+      messagesEl.appendChild(row);
 
       if (m.imageData) {
-        div.querySelector(".msg-image").addEventListener("click", () => window.open(m.imageData, "_blank"));
+        row.querySelector(".msg-image").addEventListener("click", () => window.open(m.imageData, "_blank"));
       }
 
       if (editingKey === m.key) {
-        const editInput = div.querySelector(".edit-input");
+        const editInput = row.querySelector(".edit-input");
         editInput.focus();
         editInput.setSelectionRange(editInput.value.length, editInput.value.length);
-        div.querySelector(".save-edit").addEventListener("click", () => saveEdit(m.key, editInput.value));
-        div.querySelector(".cancel-edit").addEventListener("click", () => { editingKey = null; renderMessages(); });
+        row.querySelector(".save-edit").addEventListener("click", () => saveEdit(m.key, editInput.value));
+        row.querySelector(".cancel-edit").addEventListener("click", () => { editingKey = null; renderMessages(); });
         editInput.addEventListener("keydown", (e) => {
           if (e.key === "Enter") saveEdit(m.key, editInput.value);
           if (e.key === "Escape") { editingKey = null; renderMessages(); }
         });
       } else {
-        const menuBtn = div.querySelector(".msg-menu-btn");
-        const dropdown = div.querySelector(".msg-menu-dropdown");
+        const menuBtn = row.querySelector(".msg-menu-btn");
+        const dropdown = row.querySelector(".msg-menu-dropdown");
         menuBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           const willOpen = openMenuKey !== m.key;
@@ -766,6 +779,7 @@ function createDayChartSection(sectionId, fetchersByMetric) {
   const gridlines = section.querySelector(".daychart-gridlines");
   const inner = section.querySelector(".daychart-inner");
   const barsEl = section.querySelector(".daychart-bars");
+  const labelsEl = section.querySelector(".daychart-labels");
   const toggleButtons = document.querySelectorAll("#metricToggle .pill");
 
   let state = { type: "week", index: 0 };
@@ -825,14 +839,12 @@ function createDayChartSection(sectionId, fetchersByMetric) {
     inner.style.width = `${days.length * (barWidth + 8)}px`;
 
     barsEl.innerHTML = "";
+    labelsEl.innerHTML = "";
     days.forEach((d) => {
       const dayVals = valuesByDay[d.key] || {};
       const group = document.createElement("div");
       group.className = "day-group";
       group.style.width = `${barWidth}px`;
-
-      const barsInner = document.createElement("div");
-      barsInner.className = "bars-inner";
       currentUsers.forEach((u, ui) => {
         const val = dayVals[u] || 0;
         const bar = document.createElement("div");
@@ -840,16 +852,15 @@ function createDayChartSection(sectionId, fetchersByMetric) {
         bar.style.background = colorForUser(ui);
         bar.style.height = `${Math.min(100, (val / max) * 100)}%`;
         bar.title = `${u === myKey ? "You" : u}: ${val}`;
-        barsInner.appendChild(bar);
+        group.appendChild(bar);
       });
-      group.appendChild(barsInner);
+      barsEl.appendChild(group);
 
       const label = document.createElement("span");
       label.className = "day-label";
+      label.style.width = `${barWidth}px`;
       label.textContent = d.label;
-      group.appendChild(label);
-
-      barsEl.appendChild(group);
+      labelsEl.appendChild(label);
     });
   }
 
