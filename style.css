@@ -500,7 +500,7 @@ button:focus-visible, input:focus-visible {
   position: absolute;
   left: 0;
   right: 0;
-  height: 50%;
+  height: 66px;
   overflow: hidden;
   background: linear-gradient(180deg, #1c1e27 0%, #0a0b0f 100%);
 }
@@ -508,32 +508,36 @@ button:focus-visible, input:focus-visible {
 .card-top { top: 0; border-radius: 12px 12px 0 0; }
 .card-bottom { bottom: 0; border-radius: 0 0 12px 12px; }
 
+/* Fixed-pixel line-height centers single-line text far more precisely
+   than flexbox here — the digit's true vertical center lands exactly on
+   the 66px split line, so each half shows a clean half-glyph instead of
+   an off-center crop. */
+.glyph {
+  display: block;
+  text-align: center;
+  font-family: var(--display-font);
+  font-weight: 700;
+  font-size: 4.2rem;
+  line-height: 132px;
+  color: #f4f4f8;
+}
+
 .card-half .glyph {
   position: absolute;
   left: 0;
   right: 0;
-  height: 200%;
+  height: 132px;
 }
 
 .card-top .glyph { top: 0; }
 .card-bottom .glyph { bottom: 0; }
-
-.glyph {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--display-font);
-  font-weight: 700;
-  font-size: 4.2rem;
-  color: #f4f4f8;
-}
 
 .flap {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
-  height: 50%;
+  height: 66px;
   transform-style: preserve-3d;
   transform-origin: bottom;
   transform: rotateX(0deg);
@@ -564,14 +568,14 @@ button:focus-visible, input:focus-visible {
   left: 0;
   right: 0;
   top: 0;
-  height: 200%;
+  height: 132px;
 }
 
 .hinge-line {
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
+  top: 66px;
   height: 1px;
   background: rgba(0, 0, 0, 0.6);
   z-index: 4;
