@@ -530,10 +530,7 @@ button:focus-visible, input:focus-visible {
 }
 
 .card-top .glyph { top: 0; }
-.card-bottom .glyph {
-  top: -66px;
-  bottom: auto;
-}
+.card-bottom .glyph { bottom: 0; }
 
 .flap {
   position: absolute;
@@ -545,12 +542,17 @@ button:focus-visible, input:focus-visible {
   transform-origin: bottom;
   transform: rotateX(0deg);
   z-index: 3;
+  will-change: transform;
 }
 
-.flap.flipping { animation: flapFold 0.5s ease-in forwards; }
+.flap.flipping { animation: flapFold 0.6s forwards; }
 
+/* Two-phase motion like a real flip clock: the leaf accelerates as it falls
+   through the first 90deg, then decelerates as it settles into place. A single
+   uniform curve across the whole 180deg is what made it read as mechanical. */
 @keyframes flapFold {
-  0% { transform: rotateX(0deg); }
+  0%   { transform: rotateX(0deg);    animation-timing-function: cubic-bezier(0.55, 0.05, 0.9, 0.3); }
+  50%  { transform: rotateX(-90deg);  animation-timing-function: cubic-bezier(0.25, 0.6, 0.4, 1); }
   100% { transform: rotateX(-180deg); }
 }
 
@@ -560,19 +562,31 @@ button:focus-visible, input:focus-visible {
   overflow: hidden;
   backface-visibility: hidden;
   background: linear-gradient(180deg, #1c1e27 0%, #0a0b0f 100%);
+}
+
+/* Front = the OLD digit's top half, sitting over card-top before the fall.
+   Back  = the NEW digit's BOTTOM half: once the flap has rotated -180deg it
+   physically occupies the lower half of the card, so it must complete the
+   digit that card-bottom is about to show — not repeat the top half. */
+.flap-front {
+  transform: rotateX(0deg);
   border-radius: 12px 12px 0 0;
 }
 
-.flap-front { transform: rotateX(0deg); }
-.flap-back { transform: rotateX(180deg); }
+.flap-back {
+  transform: rotateX(180deg);
+  border-radius: 12px 12px 0 0;
+}
 
 .flap-face .glyph {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
   height: 132px;
 }
+
+.flap-front .glyph { top: 0; }
+.flap-back .glyph { bottom: 0; }
 
 .hinge-line {
   position: absolute;
@@ -834,17 +848,6 @@ button:focus-visible, input:focus-visible {
 .daychart-scroll::-webkit-scrollbar-thumb:hover { background: #5457e0; }
 
 .month-pill-row { row-gap: 8px; }
-
-
-/*
- * ---------- Flip clock lower-half alignment fix ----------
- * The glyph is 132px tall while each visible half is 66px.
- * The top half displays y=0..66 of the glyph. The bottom half
- * must display y=66..132 of that same glyph, so it is shifted
- * upward by exactly 66px. Using bottom:0 caused the bottom half
- * to align to the other end of the glyph and could make the
- * same full/upper number appear reflected incorrectly.
- */
 
 /* ---------- Footer ---------- */
 .site-footer { margin-top: 28px; text-align: center; font-size: 0.78rem; color: var(--text-dim); }
