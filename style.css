@@ -488,7 +488,7 @@ button:focus-visible, input:focus-visible {
   width: 118px;
   height: 132px;
   border-radius: 12px;
-  background: linear-gradient(180deg, #1c1e27 0%, #0a0b0f 100%);
+  background: #14161d;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.06) inset,
@@ -496,13 +496,18 @@ button:focus-visible, input:focus-visible {
   perspective: 500px;
 }
 
+/* All four faces (both static halves and both sides of the falling leaf) use
+   one flat colour. A gradient can't work here: each half would restart it from
+   the top, and the leaf is rotated 180deg so its gradient renders inverted
+   against the card beneath — which is what produced the bright seam and the
+   "shift" that corrected itself once the leaf reset. */
 .card-half {
   position: absolute;
   left: 0;
   right: 0;
   height: 66px;
   overflow: hidden;
-  background: linear-gradient(180deg, #1c1e27 0%, #0a0b0f 100%);
+  background: #14161d;
 }
 
 .card-top { top: 0; border-radius: 12px 12px 0 0; }
@@ -561,7 +566,7 @@ button:focus-visible, input:focus-visible {
   inset: 0;
   overflow: hidden;
   backface-visibility: hidden;
-  background: linear-gradient(180deg, #1c1e27 0%, #0a0b0f 100%);
+  background: #14161d;
 }
 
 /* Front = the OLD digit's top half, sitting over card-top before the fall.
