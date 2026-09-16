@@ -420,6 +420,16 @@ function flipUnitTo(unit, newValue) {
   unit.flapFront.textContent = oldValue;
   unit.flapBack.textContent = newValue;
 
+  // The static top card is HIDDEN behind the flap's front face at the start of
+  // the fall, and becomes exposed as soon as the leaf swings past it — so it
+  // must already carry the new digit. Updating it at the end instead is what
+  // left the old top half sitting above the new bottom half.
+  unit.top.textContent = newValue;
+
+  // The static bottom card stays on the old digit; the falling leaf covers it
+  // and hands over to the new value once it has landed.
+  unit.bottom.textContent = oldValue;
+
   unit.flap.classList.remove("flipping");
   void unit.flap.offsetWidth; // restart animation
   unit.flap.classList.add("flipping");
@@ -428,8 +438,7 @@ function flipUnitTo(unit, newValue) {
   unit._resetHandle = setTimeout(() => {
     unit.flap.classList.remove("flipping");
     unit.flapFront.textContent = newValue;
-    unit.top.textContent = newValue;
-    unit.bottom.textContent = newValue; // swap the moment the flap settles, so top/bottom change together
+    unit.bottom.textContent = newValue;
   }, FLIP_DURATION_MS);
 }
 
