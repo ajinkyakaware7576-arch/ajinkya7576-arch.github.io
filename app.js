@@ -406,12 +406,17 @@ const flipHours = setupFlipUnit("fcHours");
 const flipMinutes = setupFlipUnit("fcMinutes");
 const flipSeconds = setupFlipUnit("fcSeconds");
 
+// must stay in sync with the .flap.flipping animation duration in style.css
+const FLIP_DURATION_MS = 600;
+
 function flipUnitTo(unit, newValue) {
   if (unit.current === newValue) return;
   const oldValue = unit.current;
   unit.current = newValue;
 
-  // front of the flap still shows the outgoing value; back is pre-loaded with the new one
+  // Front of the flap carries the outgoing digit's top half; the back carries
+  // the incoming digit's bottom half, so when the leaf lands it completes the
+  // number that card-bottom is about to reveal.
   unit.flapFront.textContent = oldValue;
   unit.flapBack.textContent = newValue;
 
@@ -425,7 +430,7 @@ function flipUnitTo(unit, newValue) {
     unit.flapFront.textContent = newValue;
     unit.top.textContent = newValue;
     unit.bottom.textContent = newValue; // swap the moment the flap settles, so top/bottom change together
-  }, 500);
+  }, FLIP_DURATION_MS);
 }
 
 function computeMyDisplaySeconds() {
