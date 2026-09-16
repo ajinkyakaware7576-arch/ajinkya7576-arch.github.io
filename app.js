@@ -292,13 +292,36 @@ function initChat() {
     const file = photoInput.files[0];
     photoInput.value = "";
     if (!file) return;
+    await stageImageFile(file);
+  });
+
+  async function stageImageFile(file) {
     try {
       pendingImage = await compressImageToDataUrl(file);
+      imagePreviewBanner.querySelector("span").textContent = "Photo ready to send";
       imagePreviewThumb.src = pendingImage;
       imagePreviewBanner.classList.remove("hidden");
     } catch (err) {
       console.error("Image processing failed:", err);
       sessionNoteForChat("Couldn't read that image — try a different file.");
+    }
+  }
+
+  // Paste an image straight into the chat: Win+Shift+S screenshots, or any
+  // image copied from a browser / image editor. Works whether the text box is
+  // focused or not, as long as the Chat tab is open.
+  document.addEventListener("paste", async (e) => {
+    if (currentTab !== "chat") return;
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    for (const item of items) {
+      if (item.kind === "file" && item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault(); // don't also paste a filename into the text box
+          await stageImageFile(file);
+        }
+        return;
+      }
     }
   });
 
