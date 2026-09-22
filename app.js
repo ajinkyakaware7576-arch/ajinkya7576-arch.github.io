@@ -8,6 +8,8 @@ const db = firebase.database();
 const NAME_KEY = "studyTogetherName";
 let myName = localStorage.getItem(NAME_KEY);
 let myKey = null;
+let goalsDay = dayKey();
+let goalsFriendKey = null;
 
 const SUBJECTS = ["chemistry", "physics", "maths"];
 const SUBJECT_LABELS = { chemistry: "Chemistry", physics: "Physics", maths: "Maths" };
@@ -46,6 +48,70 @@ function colorForUser(index) {
   return USER_COLORS[index % USER_COLORS.length];
 }
 
+// Moves everything tied to a person's old name/key over to their new one,
+// so "changing your name" actually renames you instead of quietly starting
+// a fresh, empty third user alongside your old history.
+async function migrateUserIdentity(oldKey, newKey, oldName, newName) {
+  if (!oldKey || oldKey === newKey) return;
+  const updates = {};
+
+  const [timerSnap, scoresSnap, goalsSnap, messagesSnap] = await Promise.all([
+    db.ref("dailyTimer").once("value"),
+    db.ref("scores").once("value"),
+    db.ref("goals").once("value"),
+    db.ref("messages").once("value"),
+  ]);
+
+  // dailyTimer/{day}/{oldKey} -> {newKey} (keep whichever side has more time if both exist)
+  const timerData = timerSnap.val() || {};
+  Object.entries(timerData).forEach(([day, users]) => {
+    if (users && oldKey in users) {
+      const incoming = users[oldKey];
+      const existing = users[newKey];
+      const merged = existing && (existing.totalSeconds || 0) > (incoming.totalSeconds || 0) ? existing : incoming;
+      updates[`dailyTimer/${day}/${newKey}`] = merged;
+      updates[`dailyTimer/${day}/${oldKey}`] = null;
+    }
+  });
+
+  // scores/{day}/{chemistry|physics|maths|lectures}/{oldKey} -> {newKey} (sum if both exist)
+  const scoresData = scoresSnap.val() || {};
+  Object.entries(scoresData).forEach(([day, fields]) => {
+    Object.entries(fields || {}).forEach(([field, users]) => {
+      if (users && oldKey in users) {
+        const incoming = users[oldKey] || 0;
+        const existing = users[newKey] || 0;
+        updates[`scores/${day}/${field}/${newKey}`] = Math.round((existing + incoming) * 100) / 100;
+        updates[`scores/${day}/${field}/${oldKey}`] = null;
+      }
+    });
+  });
+
+  // goals/{day}/{oldKey} -> {newKey}
+  const goalsData = goalsSnap.val() || {};
+  Object.entries(goalsData).forEach(([day, users]) => {
+    if (users && oldKey in users) {
+      updates[`goals/${day}/${newKey}`] = users[oldKey];
+      updates[`goals/${day}/${oldKey}`] = null;
+    }
+  });
+
+  if (Object.keys(updates).length) {
+    await db.ref().update(updates);
+  }
+
+  // messages carry the display name directly, not the key — rewrite those separately
+  const messagesData = messagesSnap.val() || {};
+  const msgUpdates = {};
+  Object.entries(messagesData).forEach(([key, m]) => {
+    if (m.name === oldName) msgUpdates[`messages/${key}/name`] = newName;
+    if (m.replyTo && m.replyTo.name === oldName) msgUpdates[`messages/${key}/replyTo/name`] = newName;
+  });
+  if (Object.keys(msgUpdates).length) {
+    await db.ref().update(msgUpdates);
+  }
+}
+
 /* ---------- name modal ---------- */
 const nameModal = document.getElementById("nameModal");
 const nameInput = document.getElementById("nameInput");
@@ -66,6 +132,8 @@ function showApp() {
     try { initChat(); } catch (err) { console.error("Chat init failed:", err); }
     try { initScoreboard(); } catch (err) { console.error("Scoreboard init failed:", err); }
     try { initTimerDayWatch(); } catch (err) { console.error("Timer init failed:", err); }
+    try { initGoalsTab(); } catch (err) { console.error("Goals init failed:", err); }
+    try { maybeShowGoalPrompt(); } catch (err) { console.error("Goal prompt failed:", err); }
   } else {
     // name changed after app already running — reload everything under the new identity
     try { initScoreboard(); } catch (err) { console.error("Scoreboard init failed:", err); }
@@ -76,13 +144,34 @@ function showApp() {
       runStartAt = null;
       initTimerDayWatch();
     } catch (err) { console.error("Timer reload failed:", err); }
+    try { reloadGoalsForUser(); } catch (err) { console.error("Goals reload failed:", err); }
   }
 }
 
-function trySubmitName() {
+async function trySubmitName() {
   const val = nameInput.value.trim();
   if (!val) { nameError.textContent = "Type a name so we know whose turn it is."; return; }
   if (val.length > 24) { nameError.textContent = "Keep it under 24 characters."; return; }
+
+  const isRename = appStarted && myName && val !== myName;
+  const oldName = myName;
+  const oldKey = myKey;
+  const newKey = sanitizeKey(val);
+
+  if (isRename && oldKey !== newKey) {
+    // freeze any live session under the old identity before moving its data
+    if (running) stopTimer("Renamed — today's time was saved.");
+    nameSubmit.disabled = true;
+    nameSubmit.textContent = "Updating…";
+    try {
+      await migrateUserIdentity(oldKey, newKey, oldName, val);
+    } catch (err) {
+      console.error("Name migration failed:", err);
+    }
+    nameSubmit.disabled = false;
+    nameSubmit.textContent = "Continue";
+  }
+
   myName = val;
   localStorage.setItem(NAME_KEY, myName);
   showApp();
@@ -99,7 +188,17 @@ document.getElementById("changeNameBtn").addEventListener("click", () => {
   nameInput.focus();
 });
 
-if (myName) { showApp(); } else { nameInput.focus(); }
+if (myName) {
+  // Deferred so the whole script finishes running top-to-bottom first — every
+  // module-level `let`/`const` used anywhere in the file is guaranteed to be
+  // initialized before any init function runs. Without this, a returning
+  // visitor triggers showApp() synchronously partway through the script,
+  // which can crash on state declared further down (this has bitten us twice
+  // already — the Scoreboard and Goals state hit exactly this).
+  setTimeout(showApp, 0);
+} else {
+  nameInput.focus();
+}
 
 /* ---------- tabs ---------- */
 let currentTab = "chat";
@@ -669,13 +768,14 @@ function initTimerDayWatch() {
    full history just lives in the Analysis tab instead of here.
    ========================================================== */
 function sumScoresAcrossDays(data) {
-  // data shape: { [day]: { [subject]: { [userKey]: count } } }
+  // data shape: { [day]: { [subject|lectures]: { [userKey]: count } } }
   // used only for discovering every user who has ever logged a score —
   // the Scoreboard itself only ever looks at today's node.
   const totals = {};
   SUBJECTS.forEach((s) => (totals[s] = {}));
+  totals.lectures = {};
   Object.values(data || {}).forEach((dayNode) => {
-    SUBJECTS.forEach((s) => {
+    [...SUBJECTS, "lectures"].forEach((s) => {
       const subjNode = dayNode[s] || {};
       Object.entries(subjNode).forEach(([user, count]) => {
         totals[s][user] = (totals[s][user] || 0) + count;
@@ -688,12 +788,16 @@ function sumScoresAcrossDays(data) {
 // (scoreboardDay is declared locally inside initScoreboard below —
 // keeping it module-level caused a load-order crash for returning visitors)
 
+const LECTURE_STEP = 0.25;
+
 function renderScoreboard(dayData) {
   const scoreList = document.getElementById("scoreList");
   const data = dayData || {};
+  const lectureData = data.lectures || {};
 
   const userKeys = new Set([myKey]);
   SUBJECTS.forEach((s) => Object.keys(data[s] || {}).forEach((k) => userKeys.add(k)));
+  Object.keys(lectureData).forEach((k) => userKeys.add(k));
 
   const sortedKeys = Array.from(userKeys).sort((a, b) => {
     if (a === myKey) return -1;
@@ -707,6 +811,7 @@ function renderScoreboard(dayData) {
     const displayName = isMine ? myName : key;
     const counts = SUBJECTS.map((s) => (data[s] && data[s][key]) || 0);
     const total = counts.reduce((a, b) => a + b, 0);
+    const lectures = lectureData[key] || 0;
 
     const card = document.createElement("div");
     card.className = "score-card " + (isMine ? "mine" : "theirs");
@@ -723,6 +828,14 @@ function renderScoreboard(dayData) {
               <button class="btn tiny undo-q" data-subject="${s}">−1</button>
             </span>` : ""}
           </div>`).join("")}
+        <div class="subject-row lectures">
+          <span class="subject-label">Lectures</span>
+          <span class="subject-count">${lectures.toFixed(2)}</span>
+          ${isMine ? `<span class="subject-actions">
+            <button class="btn tiny add-lecture">+0.25</button>
+            <button class="btn tiny undo-lecture">−0.25</button>
+          </span>` : ""}
+        </div>
       </div>
     `;
     scoreList.appendChild(card);
@@ -739,6 +852,14 @@ function renderScoreboard(dayData) {
           const today = dayKey();
           db.ref(`scores/${today}/${btn.dataset.subject}/${myKey}`).transaction((c) => Math.max(0, (c || 0) - 1));
         });
+      });
+      card.querySelector(".add-lecture").addEventListener("click", () => {
+        const today = dayKey();
+        db.ref(`scores/${today}/lectures/${myKey}`).transaction((c) => Math.round(((c || 0) + LECTURE_STEP) * 100) / 100);
+      });
+      card.querySelector(".undo-lecture").addEventListener("click", () => {
+        const today = dayKey();
+        db.ref(`scores/${today}/lectures/${myKey}`).transaction((c) => Math.max(0, Math.round(((c || 0) - LECTURE_STEP) * 100) / 100));
       });
     }
   });
@@ -764,6 +885,127 @@ function initScoreboard() {
 }
 
 /* ==========================================================
+   GOALS — a once-a-day "what are you studying for today" prompt,
+   saved as a shared to-do list both people can see. Your own items
+   are checkable; your partner's are shown read-only.
+   ========================================================== */
+const GOALS_PROMPT_KEY = "studyTogetherGoalsPromptedDay";
+
+const goalModal = document.getElementById("goalModal");
+const goalTextarea = document.getElementById("goalTextarea");
+const goalSaveBtn = document.getElementById("goalSaveBtn");
+const goalSkipBtn = document.getElementById("goalSkipBtn");
+
+function maybeShowGoalPrompt() {
+  const today = dayKey();
+  if (localStorage.getItem(GOALS_PROMPT_KEY) === today) return;
+  goalTextarea.value = "";
+  goalModal.classList.remove("hidden");
+  goalTextarea.focus();
+}
+
+function dismissGoalPrompt() {
+  localStorage.setItem(GOALS_PROMPT_KEY, dayKey());
+  goalModal.classList.add("hidden");
+}
+
+goalSkipBtn.addEventListener("click", dismissGoalPrompt);
+
+goalSaveBtn.addEventListener("click", () => {
+  const lines = goalTextarea.value.split("\n").map((l) => l.trim()).filter(Boolean);
+  const today = dayKey();
+  lines.forEach((text) => {
+    db.ref(`goals/${today}/${myKey}`).push({ text, done: false });
+  });
+  dismissGoalPrompt();
+});
+
+function renderGoalList(container, entries, editable) {
+  container.innerHTML = "";
+  if (entries.length === 0) {
+    container.innerHTML = '<p class="empty-note">No goals set for today.</p>';
+    return;
+  }
+  entries.forEach(([id, item]) => {
+    const row = document.createElement("div");
+    row.className = "goal-item" + (item.done ? " done" : "");
+    row.innerHTML = `
+      <label class="goal-check">
+        <input type="checkbox" ${item.done ? "checked" : ""} ${editable ? "" : "disabled"}>
+        <span>${escapeHtml(item.text)}</span>
+      </label>
+      ${editable ? '<button class="goal-delete" aria-label="delete goal">×</button>' : ""}
+    `;
+    container.appendChild(row);
+    if (editable) {
+      row.querySelector('input[type="checkbox"]').addEventListener("change", (e) => {
+        db.ref(`goals/${goalsDay}/${myKey}/${id}/done`).set(e.target.checked);
+      });
+      row.querySelector(".goal-delete").addEventListener("click", () => {
+        db.ref(`goals/${goalsDay}/${myKey}/${id}`).remove();
+      });
+    }
+  });
+}
+
+function watchGoalsDay(day) {
+  const myGoalsList = document.getElementById("myGoalsList");
+  const friendGoalsList = document.getElementById("friendGoalsList");
+  const friendGoalsLabel = document.getElementById("friendGoalsLabel");
+
+  db.ref(`goals/${day}/${myKey}`).off();
+  db.ref(`goals/${day}/${myKey}`).on("value", (snapshot) => {
+    const data = snapshot.val() || {};
+    const entries = Object.entries(data).sort((a, b) => a[0].localeCompare(b[0]));
+    renderGoalList(myGoalsList, entries, true);
+  });
+
+  if (goalsFriendKey) {
+    friendGoalsLabel.textContent = `${goalsFriendKey}'s goals today`;
+    db.ref(`goals/${day}/${goalsFriendKey}`).off();
+    db.ref(`goals/${day}/${goalsFriendKey}`).on("value", (snapshot) => {
+      const data = snapshot.val() || {};
+      const entries = Object.entries(data).sort((a, b) => a[0].localeCompare(b[0]));
+      renderGoalList(friendGoalsList, entries, false);
+    });
+  } else {
+    friendGoalsLabel.textContent = "Their goals today";
+    friendGoalsList.innerHTML = '<p class="empty-note">Waiting for your study partner…</p>';
+  }
+}
+
+function reloadGoalsForUser() {
+  goalsDay = dayKey();
+  discoverUsers().then((users) => {
+    goalsFriendKey = users.find((u) => u !== myKey) || null;
+    watchGoalsDay(goalsDay);
+  });
+}
+
+function initGoalsTab() {
+  const addGoalForm = document.getElementById("addGoalForm");
+  const addGoalInput = document.getElementById("addGoalInput");
+
+  addGoalForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = addGoalInput.value.trim();
+    if (!text) return;
+    db.ref(`goals/${goalsDay}/${myKey}`).push({ text, done: false });
+    addGoalInput.value = "";
+  });
+
+  reloadGoalsForUser();
+
+  setInterval(() => {
+    const nowKey = dayKey();
+    if (nowKey !== goalsDay) {
+      goalsDay = nowKey;
+      watchGoalsDay(goalsDay);
+    }
+  }, 30000);
+}
+
+/* ==========================================================
    ANALYSIS — day-by-day bar charts, filterable by Week / Month,
    one color per person (matches the reference layout).
    ========================================================== */
@@ -771,6 +1013,8 @@ const WEEK_OPTIONS = ["This week", "Last week", "2nd last", "3rd last", "4th las
 const MONTH_OPTIONS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function niceCeil(value) {
+  if (value <= 1) return 1;
+  if (value <= 2) return 2;
   if (value <= 5) return 5;
   const pow = Math.pow(10, Math.floor(Math.log10(value)));
   const norm = value / pow;
@@ -817,6 +1061,7 @@ function createDayChartSection(sectionId, fetchersByMetric) {
   const inner = section.querySelector(".daychart-inner");
   const barsEl = section.querySelector(".daychart-bars");
   const labelsEl = section.querySelector(".daychart-labels");
+  const starsEl = section.querySelector(".daychart-stars");
   const toggleButtons = document.querySelectorAll("#metricToggle .pill");
 
   let state = { type: "week", index: 0 };
@@ -855,19 +1100,24 @@ function createDayChartSection(sectionId, fetchersByMetric) {
   async function render() {
     setActivePills();
     const days = state.type === "week" ? daysForWeek(state.index) : daysForMonth(state.index);
-    const fetchValuesForDays = metric === "time" ? fetchersByMetric.time : fetchersByMetric.questions;
-    const valuesByDay = await fetchValuesForDays(days.map((d) => d.key)); // { dayKey: { userKey: value } }
+    const fetchValuesForDays = fetchersByMetric[metric];
+    const [valuesByDay, completionByDay] = await Promise.all([
+      fetchValuesForDays(days.map((d) => d.key)), // { dayKey: { userKey: value } }
+      fetchGoalCompletionForDays(days.map((d) => d.key)), // { dayKey: { userKey: bool } }
+    ]);
+    const isFractional = metric === "lectures";
+    const fmt = (v) => (isFractional ? v.toFixed(2) : Math.round(v));
 
     const allValues = days.flatMap((d) => Object.values(valuesByDay[d.key] || {}));
-    const max = niceCeil(Math.max(1, ...allValues, 0));
+    const max = niceCeil(Math.max(isFractional ? 0.25 : 1, ...allValues, 0));
     const tickCount = 5;
 
     yaxis.innerHTML = "";
     gridlines.innerHTML = "";
     for (let i = tickCount; i >= 0; i--) {
-      const val = Math.round((max * i) / tickCount);
+      const val = (max * i) / tickCount;
       const tick = document.createElement("span");
-      tick.textContent = val;
+      tick.textContent = fmt(val);
       yaxis.appendChild(tick);
       gridlines.appendChild(document.createElement("span"));
     }
@@ -877,8 +1127,10 @@ function createDayChartSection(sectionId, fetchersByMetric) {
 
     barsEl.innerHTML = "";
     labelsEl.innerHTML = "";
+    starsEl.innerHTML = "";
     days.forEach((d) => {
       const dayVals = valuesByDay[d.key] || {};
+      const dayCompletion = completionByDay[d.key] || {};
       const group = document.createElement("div");
       group.className = "day-group";
       group.style.width = `${barWidth}px`;
@@ -888,10 +1140,25 @@ function createDayChartSection(sectionId, fetchersByMetric) {
         bar.className = "day-bar";
         bar.style.background = colorForUser(ui);
         bar.style.height = `${Math.min(100, (val / max) * 100)}%`;
-        bar.title = `${u === myKey ? "You" : u}: ${val}`;
+        bar.title = `${u === myKey ? "You" : u}: ${fmt(val)}`;
         group.appendChild(bar);
       });
       barsEl.appendChild(group);
+
+      const starCell = document.createElement("div");
+      starCell.className = "day-star-cell";
+      starCell.style.width = `${barWidth}px`;
+      currentUsers.forEach((u, ui) => {
+        if (dayCompletion[u]) {
+          const star = document.createElement("span");
+          star.className = "day-star";
+          star.textContent = "★";
+          star.style.color = colorForUser(ui);
+          star.title = `${u === myKey ? "You" : u} completed every goal that day`;
+          starCell.appendChild(star);
+        }
+      });
+      starsEl.appendChild(starCell);
 
       const label = document.createElement("span");
       label.className = "day-label";
@@ -918,7 +1185,7 @@ async function discoverUsers() {
     Object.keys(dayNode || {}).forEach((k) => userKeys.add(k));
   });
   const scoreTotals = sumScoresAcrossDays(allScores.val() || {});
-  SUBJECTS.forEach((s) => Object.keys(scoreTotals[s]).forEach((k) => userKeys.add(k)));
+  [...SUBJECTS, "lectures"].forEach((s) => Object.keys(scoreTotals[s]).forEach((k) => userKeys.add(k)));
 
   return Array.from(userKeys).sort((a, b) => {
     if (a === myKey) return -1;
@@ -932,7 +1199,7 @@ function renderLegend(users) {
   legend.innerHTML = users.map((u, i) => {
     const label = u === myKey ? "You" : u;
     return `<span class="legend-item"><span class="legend-dot" style="background:${colorForUser(i)}"></span>${escapeHtml(label)}</span>`;
-  }).join("");
+  }).join("") + `<span class="legend-item">★ = every goal completed that day</span>`;
 }
 
 async function fetchMinutesForDays(dayKeys) {
@@ -965,6 +1232,28 @@ async function fetchQuestionsForDays(dayKeys) {
   return result;
 }
 
+async function fetchLecturesForDays(dayKeys) {
+  const reads = await Promise.all(dayKeys.map((k) => db.ref(`scores/${k}/lectures`).once("value")));
+  const result = {};
+  dayKeys.forEach((k, i) => { result[k] = reads[i].val() || {}; });
+  return result;
+}
+
+async function fetchGoalCompletionForDays(dayKeys) {
+  const reads = await Promise.all(dayKeys.map((k) => db.ref(`goals/${k}`).once("value")));
+  const result = {};
+  dayKeys.forEach((k, i) => {
+    const dayNode = reads[i].val() || {};
+    const perUser = {};
+    Object.entries(dayNode).forEach(([user, items]) => {
+      const list = Object.values(items || {});
+      perUser[user] = list.length > 0 && list.every((item) => item.done);
+    });
+    result[k] = perUser;
+  });
+  return result;
+}
+
 async function loadAnalysis() {
   currentUsers = await discoverUsers();
   renderLegend(currentUsers);
@@ -972,6 +1261,7 @@ async function loadAnalysis() {
     chartSection = createDayChartSection("section-chart", {
       time: fetchMinutesForDays,
       questions: fetchQuestionsForDays,
+      lectures: fetchLecturesForDays,
     });
   } else {
     chartSection.render();
