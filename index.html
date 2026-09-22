@@ -39,6 +39,19 @@
   </div>
 </div>
 
+<!-- Daily goal-setting prompt -->
+<div id="goalModal" class="modal-backdrop hidden">
+  <div class="modal panel goal-modal">
+    <h1 class="title-text">What's the plan for today?</h1>
+    <p class="modal-sub">One goal per line — as many as you want. You can add more later too.</p>
+    <textarea id="goalTextarea" class="goal-textarea" rows="5" placeholder="Finish chapter 4 practice set&#10;Revise organic chem notes&#10;Watch the calculus lecture"></textarea>
+    <div class="goal-modal-actions">
+      <button id="goalSkipBtn" class="btn">Skip for today</button>
+      <button id="goalSaveBtn" class="btn primary">Save goals</button>
+    </div>
+  </div>
+</div>
+
 <div id="app" class="app hidden">
 
   <header class="site-header">
@@ -56,6 +69,7 @@
     <button class="tab-btn active" data-tab="chat" role="tab" aria-selected="true">Chat<span id="chatBadge" class="tab-badge hidden">!</span></button>
     <button class="tab-btn" data-tab="timer" role="tab" aria-selected="false">Timer</button>
     <button class="tab-btn" data-tab="score" role="tab" aria-selected="false">Scoreboard</button>
+    <button class="tab-btn" data-tab="goals" role="tab" aria-selected="false">Goals</button>
     <button class="tab-btn" data-tab="analysis" role="tab" aria-selected="false">Analysis</button>
   </nav>
 
@@ -148,6 +162,26 @@
       </div>
     </section>
 
+    <!-- GOALS TAB -->
+    <section id="tab-goals" class="tab-panel">
+      <div class="goals-section">
+        <h2 class="section-label">Your goals today</h2>
+        <div id="myGoalsList" class="goals-list">
+          <p class="empty-note">No goals set for today.</p>
+        </div>
+        <form id="addGoalForm" class="add-goal-form">
+          <input id="addGoalInput" type="text" placeholder="Add another goal…" maxlength="200" autocomplete="off">
+          <button type="submit" class="btn primary">Add</button>
+        </form>
+      </div>
+      <div class="goals-section">
+        <h2 class="section-label" id="friendGoalsLabel">Their goals today</h2>
+        <div id="friendGoalsList" class="goals-list">
+          <p class="empty-note">Waiting for your study partner…</p>
+        </div>
+      </div>
+    </section>
+
     <!-- ANALYSIS TAB -->
     <section id="tab-analysis" class="tab-panel">
       <div class="chart-legend" id="userLegend"></div>
@@ -155,6 +189,7 @@
       <div class="toggle-row" id="metricToggle">
         <button class="pill active" data-metric="time">Time studied</button>
         <button class="pill" data-metric="questions">Questions solved</button>
+        <button class="pill" data-metric="lectures">Lectures</button>
       </div>
 
       <div class="analysis-section" id="section-chart">
@@ -166,6 +201,7 @@
           <div class="daychart-yaxis"></div>
           <div class="daychart-scroll">
             <div class="daychart-inner">
+              <div class="daychart-stars"></div>
               <div class="daychart-gridlines"></div>
               <div class="daychart-bars"></div>
               <div class="daychart-labels"></div>
