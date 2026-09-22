@@ -1165,7 +1165,6 @@ function createDayChartSection(sectionId, fetchersByMetric) {
           const star = document.createElement("span");
           star.className = "day-star";
           star.textContent = "★";
-          star.style.color = colorForUser(ui);
           star.title = `${u === myKey ? "You" : u} completed every goal that day`;
           bar.appendChild(star);
         }
