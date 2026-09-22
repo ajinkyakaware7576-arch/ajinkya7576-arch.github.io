@@ -770,19 +770,6 @@ button:focus-visible, input:focus-visible {
 
 .goal-check input[disabled] { cursor: default; }
 
-.goal-delete {
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-size: 1.1rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0 4px;
-  flex-shrink: 0;
-}
-
-.goal-delete:hover { color: var(--danger); }
-
 .add-goal-form { display: flex; gap: 8px; }
 .add-goal-form input { flex: 1; }
 
@@ -790,21 +777,48 @@ button:focus-visible, input:focus-visible {
 .goal-modal .title-text { text-align: center; }
 .goal-modal .modal-sub { text-align: center; }
 
-.goal-textarea {
-  width: 100%;
+.goal-entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.goal-entry-committed {
+  font-size: 0.88rem;
+  color: var(--text);
+  padding: 6px 2px;
+}
+
+.goal-entry-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.goal-entry-num {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  min-width: 18px;
+}
+
+.goal-entry-input {
+  flex: 1;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--panel-line);
   border-radius: 8px;
   color: var(--text);
-  padding: 10px 12px;
+  padding: 9px 12px;
   font-family: var(--sans);
   font-size: 0.9rem;
-  line-height: 1.5;
-  resize: vertical;
-  margin-bottom: 16px;
 }
 
-.goal-textarea:focus { outline: none; border-color: var(--accent); }
+.goal-entry-input:focus { outline: none; border-color: var(--accent); }
 
 .goal-modal-actions {
   display: flex;
@@ -854,7 +868,7 @@ button:focus-visible, input:focus-visible {
   align-items: flex-end;
   width: 32px;
   height: 200px;
-  margin-top: 18px; /* keeps the tick scale aligned with the bars, which are shifted down to make room for the star row */
+  margin-top: 18px; /* keeps the tick scale aligned with the bars, which are shifted down to leave headroom for a star above a full-height bar */
   font-size: 0.68rem;
   color: var(--text-dim);
   flex-shrink: 0;
@@ -869,31 +883,6 @@ button:focus-visible, input:focus-visible {
 .daychart-inner {
   position: relative;
   min-width: 100%;
-}
-
-.daychart-stars {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 18px;
-  display: flex;
-  gap: 8px;
-  padding: 0 4px;
-  pointer-events: none;
-}
-
-.day-star-cell {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-
-.day-star {
-  font-size: 0.85rem;
-  line-height: 1;
 }
 
 .daychart-gridlines {
@@ -916,7 +905,9 @@ button:focus-visible, input:focus-visible {
 
 /* bars and labels are two independent rows with matching per-day widths
    and gaps, so columns always line up without the label affecting the
-   bars' own height (which must stay locked to the true 0–max scale) */
+   bars' own height (which must stay locked to the true 0–max scale).
+   The 18px top margin leaves headroom for a star to sit above a bar
+   that's at (or near) full height without getting clipped. */
 .daychart-bars {
   position: relative;
   display: flex;
@@ -942,10 +933,25 @@ button:focus-visible, input:focus-visible {
 }
 
 .day-bar {
+  position: relative;
   width: 8px;
   border-radius: 3px 3px 0 0;
   min-height: 2px;
   transition: height 0.3s ease;
+}
+
+/* sits right above whichever bar completed every goal that day, riding
+   along with the bar's own dynamic height rather than a fixed row */
+.day-star {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 3px;
+  font-size: 0.8rem;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .day-label {
