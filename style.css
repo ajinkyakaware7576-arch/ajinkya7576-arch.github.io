@@ -12,6 +12,7 @@
   --chem: #2dd4bf;
   --phys: #fbbf24;
   --maths: #fb7185;
+  --lectures: #a78bfa;
   --danger: #f2607a;
   --radius: 12px;
   --display-font: "Space Grotesk", sans-serif;
@@ -693,6 +694,7 @@ button:focus-visible, input:focus-visible {
 .subject-row.chemistry { border-left-color: var(--chem); }
 .subject-row.physics { border-left-color: var(--phys); }
 .subject-row.maths { border-left-color: var(--maths); }
+.subject-row.lectures { border-left-color: var(--lectures); margin-top: 4px; padding-top: 9px; border-top: 1px dashed var(--panel-line); }
 
 .subject-label { flex: 1; font-size: 0.85rem; color: var(--text); }
 .subject-count { font-weight: 700; font-size: 0.95rem; min-width: 20px; text-align: right; }
@@ -724,6 +726,91 @@ button:focus-visible, input:focus-visible {
 }
 
 .analysis-section { margin-bottom: 40px; }
+
+/* ---------- Goals ---------- */
+.goals-section { margin-bottom: 32px; }
+
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.goal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.goal-item.done { opacity: 0.55; }
+.goal-item.done .goal-check span { text-decoration: line-through; }
+
+.goal-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  flex: 1;
+}
+
+.goal-check input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.goal-check input[disabled] { cursor: default; }
+
+.goal-delete {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.goal-delete:hover { color: var(--danger); }
+
+.add-goal-form { display: flex; gap: 8px; }
+.add-goal-form input { flex: 1; }
+
+.goal-modal { max-width: 440px; text-align: left; }
+.goal-modal .title-text { text-align: center; }
+.goal-modal .modal-sub { text-align: center; }
+
+.goal-textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+  margin-bottom: 16px;
+}
+
+.goal-textarea:focus { outline: none; border-color: var(--accent); }
+
+.goal-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
 
 .filter-label {
   font-size: 0.72rem;
@@ -767,6 +854,7 @@ button:focus-visible, input:focus-visible {
   align-items: flex-end;
   width: 32px;
   height: 200px;
+  margin-top: 18px; /* keeps the tick scale aligned with the bars, which are shifted down to make room for the star row */
   font-size: 0.68rem;
   color: var(--text-dim);
   flex-shrink: 0;
@@ -783,11 +871,36 @@ button:focus-visible, input:focus-visible {
   min-width: 100%;
 }
 
-.daychart-gridlines {
+.daychart-stars {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
+  height: 18px;
+  display: flex;
+  gap: 8px;
+  padding: 0 4px;
+  pointer-events: none;
+}
+
+.day-star-cell {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.day-star {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.daychart-gridlines {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 18px;
   height: 200px;
   display: flex;
   flex-direction: column;
@@ -810,6 +923,7 @@ button:focus-visible, input:focus-visible {
   align-items: flex-end;
   gap: 8px;
   height: 200px;
+  margin-top: 18px;
   padding: 0 4px;
 }
 
