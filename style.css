@@ -952,6 +952,8 @@ button:focus-visible, input:focus-visible {
   line-height: 1;
   white-space: nowrap;
   pointer-events: none;
+  color: #facc15;
+  text-shadow: 0 0 6px rgba(250, 204, 21, 0.5);
 }
 
 .day-label {
