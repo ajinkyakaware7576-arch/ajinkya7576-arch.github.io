@@ -43,11 +43,15 @@
 <div id="goalModal" class="modal-backdrop hidden">
   <div class="modal panel goal-modal">
     <h1 class="title-text">What's the plan for today?</h1>
-    <p class="modal-sub">One goal per line — as many as you want. You can add more later too.</p>
-    <textarea id="goalTextarea" class="goal-textarea" rows="5" placeholder="Finish chapter 4 practice set&#10;Revise organic chem notes&#10;Watch the calculus lecture"></textarea>
+    <p class="modal-sub">Type a goal and press Enter to add the next one. Once added, a goal can't be deleted — only checked off when it's done.</p>
+    <div id="goalEntries" class="goal-entries-list"></div>
+    <div class="goal-entry-row">
+      <span id="goalEntryNum" class="goal-entry-num">1.</span>
+      <input id="goalEntryInput" type="text" class="goal-entry-input" placeholder="Type a goal, press Enter" maxlength="200" autocomplete="off">
+    </div>
     <div class="goal-modal-actions">
       <button id="goalSkipBtn" class="btn">Skip for today</button>
-      <button id="goalSaveBtn" class="btn primary">Save goals</button>
+      <button id="goalSaveBtn" class="btn primary">Done</button>
     </div>
   </div>
 </div>
@@ -201,7 +205,6 @@
           <div class="daychart-yaxis"></div>
           <div class="daychart-scroll">
             <div class="daychart-inner">
-              <div class="daychart-stars"></div>
               <div class="daychart-gridlines"></div>
               <div class="daychart-bars"></div>
               <div class="daychart-labels"></div>
