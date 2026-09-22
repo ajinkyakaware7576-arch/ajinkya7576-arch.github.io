@@ -892,34 +892,60 @@ function initScoreboard() {
 const GOALS_PROMPT_KEY = "studyTogetherGoalsPromptedDay";
 
 const goalModal = document.getElementById("goalModal");
-const goalTextarea = document.getElementById("goalTextarea");
+const goalEntries = document.getElementById("goalEntries");
+const goalEntryNum = document.getElementById("goalEntryNum");
+const goalEntryInput = document.getElementById("goalEntryInput");
 const goalSaveBtn = document.getElementById("goalSaveBtn");
 const goalSkipBtn = document.getElementById("goalSkipBtn");
+
+let goalEntryCount = 0;
+
+function refreshGoalEntryNumber() {
+  goalEntryNum.textContent = `${goalEntryCount + 1}.`;
+}
+
+function commitGoalEntry() {
+  const text = goalEntryInput.value.trim();
+  if (!text) return;
+  db.ref(`goals/${dayKey()}/${myKey}`).push({ text, done: false });
+  const row = document.createElement("div");
+  row.className = "goal-entry-committed";
+  row.textContent = `${goalEntryCount + 1}. ${text}`;
+  goalEntries.appendChild(row);
+  goalEntryCount++;
+  refreshGoalEntryNumber();
+  goalEntryInput.value = "";
+}
+
+goalEntryInput.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  commitGoalEntry();
+});
 
 function maybeShowGoalPrompt() {
   const today = dayKey();
   if (localStorage.getItem(GOALS_PROMPT_KEY) === today) return;
-  goalTextarea.value = "";
+  goalEntries.innerHTML = "";
+  goalEntryCount = 0;
+  refreshGoalEntryNumber();
+  goalEntryInput.value = "";
   goalModal.classList.remove("hidden");
-  goalTextarea.focus();
+  goalEntryInput.focus();
 }
 
 function dismissGoalPrompt() {
+  commitGoalEntry(); // catch any unfinished text still sitting in the input
   localStorage.setItem(GOALS_PROMPT_KEY, dayKey());
   goalModal.classList.add("hidden");
 }
 
 goalSkipBtn.addEventListener("click", dismissGoalPrompt);
+goalSaveBtn.addEventListener("click", dismissGoalPrompt);
 
-goalSaveBtn.addEventListener("click", () => {
-  const lines = goalTextarea.value.split("\n").map((l) => l.trim()).filter(Boolean);
-  const today = dayKey();
-  lines.forEach((text) => {
-    db.ref(`goals/${today}/${myKey}`).push({ text, done: false });
-  });
-  dismissGoalPrompt();
-});
-
+// Goals are permanent once added — the only way an unfinished one "goes
+// away" is that each day starts with a fresh, empty list. Checking items
+// off is the only edit allowed; there's deliberately no delete control.
 function renderGoalList(container, entries, editable) {
   container.innerHTML = "";
   if (entries.length === 0) {
@@ -934,15 +960,11 @@ function renderGoalList(container, entries, editable) {
         <input type="checkbox" ${item.done ? "checked" : ""} ${editable ? "" : "disabled"}>
         <span>${escapeHtml(item.text)}</span>
       </label>
-      ${editable ? '<button class="goal-delete" aria-label="delete goal">×</button>' : ""}
     `;
     container.appendChild(row);
     if (editable) {
       row.querySelector('input[type="checkbox"]').addEventListener("change", (e) => {
         db.ref(`goals/${goalsDay}/${myKey}/${id}/done`).set(e.target.checked);
-      });
-      row.querySelector(".goal-delete").addEventListener("click", () => {
-        db.ref(`goals/${goalsDay}/${myKey}/${id}`).remove();
       });
     }
   });
@@ -1061,7 +1083,6 @@ function createDayChartSection(sectionId, fetchersByMetric) {
   const inner = section.querySelector(".daychart-inner");
   const barsEl = section.querySelector(".daychart-bars");
   const labelsEl = section.querySelector(".daychart-labels");
-  const starsEl = section.querySelector(".daychart-stars");
   const toggleButtons = document.querySelectorAll("#metricToggle .pill");
 
   let state = { type: "week", index: 0 };
@@ -1127,7 +1148,6 @@ function createDayChartSection(sectionId, fetchersByMetric) {
 
     barsEl.innerHTML = "";
     labelsEl.innerHTML = "";
-    starsEl.innerHTML = "";
     days.forEach((d) => {
       const dayVals = valuesByDay[d.key] || {};
       const dayCompletion = completionByDay[d.key] || {};
@@ -1141,24 +1161,17 @@ function createDayChartSection(sectionId, fetchersByMetric) {
         bar.style.background = colorForUser(ui);
         bar.style.height = `${Math.min(100, (val / max) * 100)}%`;
         bar.title = `${u === myKey ? "You" : u}: ${fmt(val)}`;
-        group.appendChild(bar);
-      });
-      barsEl.appendChild(group);
-
-      const starCell = document.createElement("div");
-      starCell.className = "day-star-cell";
-      starCell.style.width = `${barWidth}px`;
-      currentUsers.forEach((u, ui) => {
         if (dayCompletion[u]) {
           const star = document.createElement("span");
           star.className = "day-star";
           star.textContent = "★";
           star.style.color = colorForUser(ui);
           star.title = `${u === myKey ? "You" : u} completed every goal that day`;
-          starCell.appendChild(star);
+          bar.appendChild(star);
         }
+        group.appendChild(bar);
       });
-      starsEl.appendChild(starCell);
+      barsEl.appendChild(group);
 
       const label = document.createElement("span");
       label.className = "day-label";
